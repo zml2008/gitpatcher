@@ -6,13 +6,31 @@ plugins {
     id 'idea'
 
     id 'maven-publish'
-    id 'com.gradle.plugin-publish' version '0.9.5'
+    id 'com.gradle.plugin-publish' version '0.11.0'
 
-    id 'net.minecrell.licenser' version '0.3'
+    id 'net.minecrell.licenser' version '0.4.1'
+    id 'org.ajoberstar.grgit' version '4.0.0'
 }
 
-group = 'net.minecrell'
-version = '0.9.1-SNAPSHOT'
+ext {
+    TAG = '0.0'
+}
+def gitVersion = {
+    def raw = grgit.describe(longDescr: true, tags:true)
+    def desc = (raw == null ? '0.0-0-unknown' : grgit.describe(longDescr: true, tags:true)).split('-') as List
+    def hash = desc.remove(desc.size() - 1)
+    def offset = desc.remove(desc.size() - 1)
+    TAG = desc.join('-')
+    def branch = grgit.branch.current().name
+    if (branch in ['master', 'HEAD'])
+        branch = null
+    if (branch != null && branch.endsWith('.x') && TAG.equals(branch.substring(0, branch.length() - 2)))
+        branch = null
+    return "${TAG}.${offset}${t -> if (branch != null) t << '-' + branch}".toString()
+}
+
+group = 'net.minecraftforge' // Publishing under our name as we are a fork
+version = gitVersion()
 description = 'A Gradle plugin to manage patches for Git repositories'
 
 sourceCompatibility = '1.7'
@@ -23,7 +41,6 @@ repositories {
 }
 
 dependencies {
-    compileOnly'org.codehaus.groovy:groovy-all:2.4.7:indy'
 }
 
 tasks.withType(GroovyCompile) {
@@ -36,21 +53,26 @@ license {
     include '**/*.groovy'
 }
 
-task sourceJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
+java {
+    withSourcesJar()
 }
 
+//This duplicates the publish for some reason
+gradle.taskGraph.whenReady { graph -> publishMavenJavaPublicationToMavenRepository.onlyIf { false } }
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            from components.java
-
-            artifact sourceJar
-
             repositories {
                 maven {
-                    url = System.getenv('REPO_' + (version.endsWith('-SNAPSHOT') ? 'SNAPSHOTS' : 'RELEASES')) ?: "$buildDir/repo"
+                    if (project.hasProperty('forgeMavenPassword')) {
+                        credentials {
+                            username project.properties.forgeMavenUser
+                            password project.properties.forgeMavenPassword
+                        }
+                        url 'https://files.minecraftforge.net/maven/manage/upload'
+                    } else {
+                        url 'file://' + rootProject.file('repo').getAbsolutePath()
+                    }
                 }
             }
         }
@@ -58,19 +80,15 @@ publishing {
 }
 
 pluginBundle {
-    website = 'https://github.com/Minecrell/gitpatcher'
+    website = 'https://github.com/MinecraftForge/gitpatcher'
     vcsUrl = website
     description = project.description
     tags = ['git']
 
     plugins {
         gitpatcherPlugin {
-            id = 'net.minecrell.gitpatcher'
+            id = 'net.minecraftforge.gitpatcher'
             displayName = 'gitpatcher'
         }
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.3'
 }

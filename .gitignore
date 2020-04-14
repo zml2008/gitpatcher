@@ -256,3 +256,4 @@ gradle-app.setting
 
 # Allow the Gradle wrapper
 !gradle-wrapper.jar
+/repo/
