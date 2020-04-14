@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('buildandtest') {
             steps {
-                sh './gradlew ${GRADLE_ARGS} --refresh-dependencies --continue build test'
+                sh './gradlew ${GRADLE_ARGS} --refresh-dependencies --continue build test -x:validatePlugins'
                 script {
                     env.MYGROUP   = sh(returnStdout: true, script: './gradlew ${GRADLE_ARGS} properties -q | grep "group:" | awk \'{print $2}\'').trim()
                     env.MYNAME    = sh(returnStdout: true, script: './gradlew ${GRADLE_ARGS} properties -q | grep "name:" | awk \'{print $2}\'').trim()
