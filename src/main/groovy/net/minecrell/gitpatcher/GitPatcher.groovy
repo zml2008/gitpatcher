@@ -43,7 +43,7 @@ class GitPatcher implements Plugin<Project> {
 
             task('findGit', type: FindGitTask)
             task('updateSubmodules', type: UpdateSubmodulesTask, dependsOn: 'findGit')
-            task('applyPatches', type: ApplyPatchesTask, dependsOn: 'updateSubmodules')
+            task('applyPatches', type: ApplyPatchesTask/*, dependsOn: 'updateSubmodules' We don't want to update the submodule if we're targeting a specific commit */)
             task('makePatches', type: MakePatchesTask, dependsOn: 'findGit')
 
             afterEvaluate {
