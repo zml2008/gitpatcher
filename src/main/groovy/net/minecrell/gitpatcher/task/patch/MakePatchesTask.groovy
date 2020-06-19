@@ -72,7 +72,7 @@ class MakePatchesTask extends PatchTask {
         }
 
         def git = new Git(repo)
-        git.format_patch('--no-stat', '-N', '-o', patchDir.absolutePath, 'origin/upstream') >> null
+        git.format_patch('--no-stat', '--zero-commit', '--full-index', '--no-signature', '-N', '-o', patchDir.absolutePath, 'origin/upstream') >> null
 
         git.repo = root
         git.add('-A', patchDir.absolutePath) >> out
