@@ -3,14 +3,14 @@
 pipeline {
     agent {
         docker {
-            image 'gradlewrapper:6.9.1-jdk8'
+            image 'gradle:6.9.1-jdk8'
             args '-v gradlecache:/gradlecache'
         }
     }
     environment {
         GRADLE_ARGS = '-Dorg.gradle.daemon.idletimeout=5000'
         DISCORD_WEBHOOK = credentials('forge-discord-jenkins-webhook')
-        DISCORD_PREFIX = "Job: gitpatcher Branch: ${BRANCH_NAME} Build: #${BUILD_NUMBER}"
+        DISCORD_PREFIX = "Job: GitPatcher Branch: ${BRANCH_NAME} Build: #${BUILD_NUMBER}"
         JENKINS_HEAD = 'https://wiki.jenkins-ci.org/download/attachments/2916393/headshot.png'
     }
 
