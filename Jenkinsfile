@@ -3,22 +3,39 @@
 pipeline {
     agent {
         docker {
-            image 'gradlewrapper:latest'
+            image 'gradlewrapper:6.9.1-jdk8'
             args '-v gradlecache:/gradlecache'
         }
     }
     environment {
         GRADLE_ARGS = '-Dorg.gradle.daemon.idletimeout=5000'
+        DISCORD_WEBHOOK = credentials('forge-discord-jenkins-webhook')
+        DISCORD_PREFIX = "Job: gitpatcher Branch: ${BRANCH_NAME} Build: #${BUILD_NUMBER}"
+        JENKINS_HEAD = 'https://wiki.jenkins-ci.org/download/attachments/2916393/headshot.png'
     }
 
     stages {
+        stage('notify_start') {
+            when {
+                not {
+                    changeRequest()
+                }
+            }
+            steps {
+                discordSend(
+                    title: "${DISCORD_PREFIX} Started",
+                    successful: true,
+                    result: 'ABORTED', //White border
+                    thumbnail: JENKINS_HEAD,
+                    webhookURL: DISCORD_WEBHOOK
+                )
+            }
+        }
         stage('buildandtest') {
             steps {
-                sh './gradlew ${GRADLE_ARGS} --refresh-dependencies --continue build test -x:validatePlugins'
-                script {
-                    env.MYGROUP   = sh(returnStdout: true, script: './gradlew ${GRADLE_ARGS} properties -q | grep "group:" | awk \'{print $2}\'').trim()
-                    env.MYNAME    = sh(returnStdout: true, script: './gradlew ${GRADLE_ARGS} properties -q | grep "name:" | awk \'{print $2}\'').trim()
-                    env.MYVERSION = sh(returnStdout: true, script: './gradlew ${GRADLE_ARGS} properties -q | grep "version:" | awk \'{print $2}\'').trim()
+                withGradle {
+                    sh './gradlew ${GRADLE_ARGS} --refresh-dependencies --continue build test'
+                    gradleVersion(this)
                 }
             }
             post {
@@ -34,12 +51,17 @@ pipeline {
                     changeRequest()
                 }
             }
-            environment {
-                FORGE_MAVEN = credentials('forge-maven-forge-user')
-            }
             steps {
-                sh './gradlew ${GRADLE_ARGS} publish -PforgeMavenUser=${FORGE_MAVEN_USR} -PforgeMavenPassword=${FORGE_MAVEN_PSW}'
-                sh 'curl --user ${FORGE_MAVEN} https://files.minecraftforge.net/maven/manage/promote/latest/${MYGROUP}.${MYNAME}/${MYVERSION}'
+                withCredentials([usernamePassword(credentialsId: 'maven-forge-user', usernameVariable: 'MAVEN_USER', passwordVariable: 'MAVEN_PASSWORD')]) {
+                    withGradle {
+                        sh './gradlew ${GRADLE_ARGS} publish'
+                    }
+                }
+            }
+            post {
+                success {
+                    build job: 'filegenerator', parameters: [string(name: 'COMMAND', value: "promote ${env.MYGROUP}:${env.MYARTIFACT} ${env.MYVERSION} latest")], propagate: false, wait: false
+                }
             }
         }
     }

@@ -22,8 +22,10 @@
 
 package net.minecrell.gitpatcher.task
 
+import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 
+@CompileStatic
 abstract class GitTask extends DefaultTask {
 
     File repo

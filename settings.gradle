@@ -1,1 +1,12 @@
+pluginManagement {
+    repositories {
+        maven {
+            url = 'https://maven.minecraftforge.net/'
+            name = 'forge'
+            mavenContent { releasesOnly() }
+        }
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'gitpatcher'

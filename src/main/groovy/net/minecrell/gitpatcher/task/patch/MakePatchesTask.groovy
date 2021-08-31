@@ -26,7 +26,7 @@ import static java.lang.System.out
 
 import net.minecrell.gitpatcher.Git
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
@@ -39,8 +39,8 @@ class MakePatchesTask extends PatchTask {
         return super.getRepo()
     }
 
-    @Override @InputFile
-    File getRefCache() {
+    @Override @Internal
+    File getRefCache() { // not used in this task
         return super.getRefCache()
     }
 
@@ -48,6 +48,12 @@ class MakePatchesTask extends PatchTask {
     File getPatchDir() {
         return super.getPatchDir()
     }
+
+    @Override @Internal
+    File[] getPatches() {
+        return super.getPatches()
+    }
+
 
     {
         outputs.upToDateWhen {

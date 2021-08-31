@@ -22,6 +22,7 @@
 
 package net.minecrell.gitpatcher
 
+import groovy.transform.CompileStatic
 import net.minecrell.gitpatcher.task.FindGitTask
 import net.minecrell.gitpatcher.task.UpdateSubmodulesTask
 import net.minecrell.gitpatcher.task.patch.ApplyPatchesTask
@@ -67,10 +68,12 @@ class GitPatcher implements Plugin<Project> {
         }
     }
 
+    @CompileStatic
     Project getProject() {
         return project
     }
 
+    @CompileStatic
     PatchExtension getExtension() {
         return extension
     }

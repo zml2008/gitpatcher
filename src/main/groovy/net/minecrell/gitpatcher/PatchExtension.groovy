@@ -22,6 +22,9 @@
 
 package net.minecrell.gitpatcher
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class PatchExtension {
 
     File root
