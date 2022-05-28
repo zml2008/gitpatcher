@@ -31,7 +31,9 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 
+@UntrackedTask(because = "State is tracked by git")
 class ApplyPatchesTask extends PatchTask {
 
     @Internal
@@ -39,7 +41,7 @@ class ApplyPatchesTask extends PatchTask {
 
     @Override @Internal
     File getPatchDir() {
-        return super.getPatchDir();
+        return super.getPatchDir()
     }
 
     @Override @InputFiles

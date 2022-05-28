@@ -29,7 +29,9 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 
+@UntrackedTask(because = "State is tracked by git")
 class MakePatchesTask extends PatchTask {
 
     private static final Closure HUNK = { it.startsWith('@@') }

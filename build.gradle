@@ -71,6 +71,7 @@ tasks.named('javadocJar', Jar).configure {
 }
 
 validatePlugins {
+    ignoreFailures = true
     failOnWarning = false // abstract classes should be ok without annotations?
 }
 

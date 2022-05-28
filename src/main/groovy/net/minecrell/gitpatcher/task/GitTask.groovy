@@ -24,10 +24,14 @@ package net.minecrell.gitpatcher.task
 
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.UntrackedTask
 
+@UntrackedTask(because = "State is tracked by git")
 @CompileStatic
 abstract class GitTask extends DefaultTask {
 
+    @Internal
     File repo
 
 }
