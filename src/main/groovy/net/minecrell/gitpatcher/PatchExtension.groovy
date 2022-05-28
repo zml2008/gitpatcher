@@ -23,6 +23,11 @@
 package net.minecrell.gitpatcher
 
 import groovy.transform.CompileStatic
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.ProviderFactory
+
+import javax.inject.Inject
 
 @CompileStatic
 class PatchExtension {
@@ -34,5 +39,17 @@ class PatchExtension {
     File target
 
     File patches
+
+    final Property<Boolean> addAsSafeDirectory
+
+    @Inject
+    PatchExtension(final ObjectFactory objects, final ProviderFactory providers) {
+        this.addAsSafeDirectory = objects.property(Boolean.class)
+            .convention(
+                providers.environmentVariable("GITPATCHER_ADD_GIT_SAFEDIR")
+                    .map { it.equals("true") }
+                    .orElse(false)
+            )
+    }
 
 }

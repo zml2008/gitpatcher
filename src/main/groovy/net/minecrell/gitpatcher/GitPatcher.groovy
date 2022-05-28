@@ -27,6 +27,7 @@ import net.minecrell.gitpatcher.task.FindGitTask
 import net.minecrell.gitpatcher.task.UpdateSubmodulesTask
 import net.minecrell.gitpatcher.task.patch.ApplyPatchesTask
 import net.minecrell.gitpatcher.task.patch.MakePatchesTask
+import net.minecrell.gitpatcher.task.patch.PatchTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -42,14 +43,20 @@ class GitPatcher implements Plugin<Project> {
             this.extension = extensions.create('patches', PatchExtension)
             extension.root = projectDir
 
-            task('findGit', type: FindGitTask)
-            task('updateSubmodules', type: UpdateSubmodulesTask, dependsOn: 'findGit')
-            task('applyPatches', type: ApplyPatchesTask/*, dependsOn: 'updateSubmodules' We don't want to update the submodule if we're targeting a specific commit */)
-            task('makePatches', type: MakePatchesTask, dependsOn: 'findGit')
+            def findGit = tasks.register('findGit', FindGitTask)
+            def updateSubmodules = tasks.register('updateSubmodules', UpdateSubmodulesTask) { dependsOn findGit }
+            tasks.register('applyPatches', ApplyPatchesTask/*, dependsOn: 'updateSubmodules' We don't want to update the submodule if we're targeting a specific commit */)
+            tasks.register('makePatches', MakePatchesTask) { dependsOn findGit }
+
+            tasks.withType(PatchTask).configureEach {
+                addAsSafeDirectory.set(extension.addAsSafeDirectory)
+            }
 
             afterEvaluate {
                 // Configure the settings from our extension
-                tasks.findGit.submodule = extension.submodule
+                findGit.configure {
+                    submodule = extension.submodule
+                }
 
                 configure([tasks.applyPatches, tasks.makePatches]) {
                     repo = extension.target
@@ -60,7 +67,7 @@ class GitPatcher implements Plugin<Project> {
 
                 tasks.applyPatches.updateTask = tasks.updateSubmodules
 
-                tasks.updateSubmodules.with {
+                updateSubmodules.configure {
                     repo = extension.root
                     submodule = extension.submodule
                 }

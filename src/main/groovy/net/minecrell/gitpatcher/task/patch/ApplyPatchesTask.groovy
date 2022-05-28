@@ -34,7 +34,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 
 @UntrackedTask(because = "State is tracked by git")
-class ApplyPatchesTask extends PatchTask {
+abstract class ApplyPatchesTask extends PatchTask {
 
     @Internal
     UpdateSubmodulesTask updateTask
@@ -73,44 +73,51 @@ class ApplyPatchesTask extends PatchTask {
     @TaskAction
     void applyPatches() {
         def git = new Git(submoduleRoot)
-        git.branch('-f', 'upstream') >> null
+        def safeAdded = addAsSafeRepo(git)
+        try {
+            git.branch('-f', 'upstream') >> null
 
-        def gitDir = new File(repo, '.git')
-        if (!gitDir.isDirectory() || gitDir.list().length == 0) {
-            logger.lifecycle 'Creating {} repository...', repo
+            def gitDir = new File(repo, '.git')
+            if (!gitDir.isDirectory() || gitDir.list().length == 0) {
+                logger.lifecycle 'Creating {} repository...', repo
 
-            assert gitDir.deleteDir()
-            git.repo = root
-            git.clone('--recursive', submodule, repo.absolutePath, '-b', 'upstream') >> out
+                assert gitDir.deleteDir()
+                git.repo = root
+                git.clone('--recursive', submodule, repo.absolutePath, '-b', 'upstream') >> out
+            }
+
+            logger.lifecycle 'Resetting {}...', repo
+
+            git.repo = repo
+            git.fetch('origin') >> null
+            git.checkout('-B', 'master', 'origin/upstream') >> null
+            git.reset('--hard') >> out
+
+            if (!patchDir.directory) {
+                assert patchDir.mkdirs(), 'Failed to create patch directory'
+            }
+
+            if ('true'.equalsIgnoreCase(git.config('commit.gpgsign').readText())) {
+                logger.warn("Disabling GPG signing for the gitpatcher repository")
+                git.config('commit.gpgsign', 'false') >> out
+            }
+
+            def patches = this.patches
+            if (patches.length > 0) {
+                logger.lifecycle 'Applying patches from {} to {}', patchDir, repo
+
+                git.am('--abort') >>> null
+                git.am('--3way', *patches.collect { it.absolutePath }) >> out
+
+                logger.lifecycle 'Successfully applied patches from {} to {}', patchDir, repo
+            }
+
+            refCache.text = git.ref + '\n' + updateTask.ref
+        } finally {
+            if (safeAdded) {
+                cleanUpSafeRepo(git)
+            }
         }
-
-        logger.lifecycle 'Resetting {}...', repo
-
-        git.repo = repo
-        git.fetch('origin') >> null
-        git.checkout('-B', 'master', 'origin/upstream') >> null
-        git.reset('--hard') >> out
-
-        if (!patchDir.directory) {
-            assert patchDir.mkdirs(), 'Failed to create patch directory'
-        }
-
-        if ('true'.equalsIgnoreCase(git.config('commit.gpgsign').readText())) {
-            logger.warn("Disabling GPG signing for the gitpatcher repository")
-            git.config('commit.gpgsign', 'false') >> out
-        }
-
-        def patches = this.patches
-        if (patches.length > 0) {
-            logger.lifecycle 'Applying patches from {} to {}', patchDir, repo
-
-            git.am('--abort') >>> null
-            git.am('--3way', *patches.collect { it.absolutePath }) >> out
-
-            logger.lifecycle 'Successfully applied patches from {} to {}', patchDir, repo
-        }
-
-        refCache.text = git.ref + '\n' + updateTask.ref
     }
 
 }

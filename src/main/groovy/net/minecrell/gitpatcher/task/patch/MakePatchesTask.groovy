@@ -32,7 +32,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 
 @UntrackedTask(because = "State is tracked by git")
-class MakePatchesTask extends PatchTask {
+abstract class MakePatchesTask extends PatchTask {
 
     private static final Closure HUNK = { it.startsWith('@@') }
 
@@ -80,21 +80,28 @@ class MakePatchesTask extends PatchTask {
         }
 
         def git = new Git(repo)
-        git.format_patch('--no-stat', '--zero-commit', '--full-index', '--no-signature', '-N', '-o', patchDir.absolutePath, 'origin/upstream') >> null
+        def safeAdded = addAsSafeRepo(git)
+        try {
+            git.format_patch('--no-stat', '--zero-commit', '--full-index', '--no-signature', '-N', '-o', patchDir.absolutePath, 'origin/upstream') >> null
 
-        git.repo = root
-        git.add('-A', patchDir.absolutePath) >> out
+            git.repo = root
+            git.add('-A', patchDir.absolutePath) >> out
 
-        didWork = false
-        for (def patch : patches) {
-            List<String> diff = git.diff('--no-color', '-U1', '--staged', patch.absolutePath).text.readLines()
-            if (isUpToDate(diff)) {
-                logger.lifecycle 'Skipping {} (up-to-date)', patch.name
-                git.reset('HEAD', patch.absolutePath) >> null
-                git.checkout('--', patch.absolutePath) >> null
-            } else {
-                didWork = true
-                logger.lifecycle 'Generating {}', patch.name
+            didWork = false
+            for (def patch : patches) {
+                List<String> diff = git.diff('--no-color', '-U1', '--staged', patch.absolutePath).text.readLines()
+                if (isUpToDate(diff)) {
+                    logger.lifecycle 'Skipping {} (up-to-date)', patch.name
+                    git.reset('HEAD', patch.absolutePath) >> null
+                    git.checkout('--', patch.absolutePath) >> null
+                } else {
+                    didWork = true
+                    logger.lifecycle 'Generating {}', patch.name
+                }
+            }
+        } finally {
+            if (safeAdded) {
+                cleanUpSafeRepo(git)
             }
         }
     }

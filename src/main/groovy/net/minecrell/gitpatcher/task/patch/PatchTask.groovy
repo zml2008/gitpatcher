@@ -23,7 +23,10 @@
 package net.minecrell.gitpatcher.task.patch
 
 import groovy.transform.CompileStatic
+import net.minecrell.gitpatcher.Git
 import net.minecrell.gitpatcher.task.SubmoduleTask
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 
 abstract class PatchTask extends SubmoduleTask {
@@ -32,6 +35,9 @@ abstract class PatchTask extends SubmoduleTask {
     File root
 
     File patchDir
+
+    @Console
+    public abstract Property<Boolean> getAddAsSafeDirectory()
 
     protected File[] getPatches() {
         if (!patchDir.directory) {
@@ -82,6 +88,32 @@ abstract class PatchTask extends SubmoduleTask {
     String getCachedSubmoduleRef() {
         readCache()
         return cachedRefs[1]
+    }
+
+    /**
+     * Maybe add the configured {@code repo} as a git safe repository.
+     *
+     * @return whether the repo was added by us, so should be removed at the end of the task
+     */
+    protected boolean addAsSafeRepo(Git git) {
+        if (!this.addAsSafeDirectory.get()) {
+            return false
+        }
+
+        // add patched root
+        // add submodule
+        def safeDirs = git.config('--global', '--get-all', 'safe.directory').readText()?.split(System.lineSeparator())
+        if (safeDirs != null && safeDirs.contains(git.repo.absolutePath) && safeDirs.contains(this.submoduleRoot.absolutePath)) {
+            return false
+        }
+
+        git.config('--global', '--add', 'safe.directory', git.repo.absolutePath) >> null
+        git.config('--global', '--add', 'safe.directory', this.submoduleRoot.absolutePath) >> null
+    }
+
+    protected void cleanUpSafeRepo(Git git) {
+        git.config('--global', '--remove', 'safe.directory', git.repo.absolutePath) >> null
+        git.config('--global', '--remove', 'safe.directory', this.submoduleRoot.absolutePath) >> null
     }
 
 }
