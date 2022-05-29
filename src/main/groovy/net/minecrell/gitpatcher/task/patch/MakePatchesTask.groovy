@@ -80,7 +80,7 @@ abstract class MakePatchesTask extends PatchTask {
         }
 
         def git = new Git(repo)
-        def safeAdded = addAsSafeRepo(git)
+        def safeState = addAsSafeRepo(git)
         try {
             git.format_patch('--no-stat', '--zero-commit', '--full-index', '--no-signature', '-N', '-o', patchDir.absolutePath, 'origin/upstream') >> null
 
@@ -100,9 +100,7 @@ abstract class MakePatchesTask extends PatchTask {
                 }
             }
         } finally {
-            if (safeAdded) {
-                cleanUpSafeRepo(git)
-            }
+            cleanUpSafeRepo(git, safeState)
         }
     }
 

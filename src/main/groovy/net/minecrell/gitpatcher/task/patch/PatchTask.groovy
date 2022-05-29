@@ -23,6 +23,7 @@
 package net.minecrell.gitpatcher.task.patch
 
 import groovy.transform.CompileStatic
+import groovy.transform.Immutable
 import net.minecrell.gitpatcher.Git
 import net.minecrell.gitpatcher.task.SubmoduleTask
 import org.gradle.api.provider.Property
@@ -95,25 +96,46 @@ abstract class PatchTask extends SubmoduleTask {
      *
      * @return whether the repo was added by us, so should be removed at the end of the task
      */
-    protected boolean addAsSafeRepo(Git git) {
+    protected RepoState addAsSafeRepo(Git git) {
         if (!this.addAsSafeDirectory.get()) {
-            return false
+            this.getLogger().info("Not adding submodules as safe directories due to configuration parameter being disabled")
+            return null
         }
 
-        // add patched root
-        // add submodule
         def safeDirs = git.config('--global', '--get-all', 'safe.directory').readText()?.split(System.lineSeparator())
-        if (safeDirs != null && safeDirs.contains(git.repo.absolutePath) && safeDirs.contains(this.submoduleRoot.absolutePath)) {
-            return false
+        def hasPatched = safeDirs != null && safeDirs.contains(git.repo.absolutePath)
+        def hasUpstream = safeDirs != null && safeDirs.contains(this.submoduleRoot.absolutePath)
+       if (!hasPatched) {
+            // add patched root
+            git.config('--global', '--add', 'safe.directory', git.repo.absolutePath) >> null
+       }
+
+       if (!hasUpstream) {
+            // add submodule
+            git.config('--global', '--add', 'safe.directory', this.submoduleRoot.absolutePath) >> null
         }
 
-        git.config('--global', '--add', 'safe.directory', git.repo.absolutePath) >> null
-        git.config('--global', '--add', 'safe.directory', this.submoduleRoot.absolutePath) >> null
+        return new RepoState(hasUpstream, hasPatched)
     }
 
-    protected void cleanUpSafeRepo(Git git) {
-        git.config('--global', '--remove', 'safe.directory', git.repo.absolutePath) >> null
-        git.config('--global', '--remove', 'safe.directory', this.submoduleRoot.absolutePath) >> null
+    protected void cleanUpSafeRepo(Git git, RepoState state) {
+        if (state == null) {
+            return
+        }
+
+        if (!state.hasPatched) {
+            git.config('--global', '--remove', 'safe.directory', git.repo.absolutePath) >> null
+        }
+
+        if (!state.hasUpstream) {
+            git.config('--global', '--remove', 'safe.directory', this.submoduleRoot.absolutePath) >> null
+        }
+    }
+
+    @Immutable
+    static class RepoState {
+        boolean hasUpstream
+        boolean hasPatched
     }
 
 }

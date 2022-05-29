@@ -23,8 +23,12 @@
 package net.minecrell.gitpatcher
 
 import groovy.transform.CompileStatic
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 
 class Git {
+
+    private static final Logger LOGGER = Logging.getLogger(Git)
 
     File repo
 
@@ -46,7 +50,9 @@ class Git {
     }
 
     Command run(String name, Object input) {
-        return new Command(['git', '--no-pager', name.replace('_' as char, '-' as char), *input].execute(null as String[], repo))
+        def args = ['git', '--no-pager', name.replace('_' as char, '-' as char), *input]
+        LOGGER.info("gitpatcher: executing {}", args)
+        return new Command(args.execute(null as String[], repo))
     }
 
     @Override

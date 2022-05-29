@@ -73,7 +73,7 @@ abstract class ApplyPatchesTask extends PatchTask {
     @TaskAction
     void applyPatches() {
         def git = new Git(submoduleRoot)
-        def safeAdded = addAsSafeRepo(git)
+        def safeState = addAsSafeRepo(git)
         try {
             git.branch('-f', 'upstream') >> null
 
@@ -114,9 +114,7 @@ abstract class ApplyPatchesTask extends PatchTask {
 
             refCache.text = git.ref + '\n' + updateTask.ref
         } finally {
-            if (safeAdded) {
-                cleanUpSafeRepo(git)
-            }
+            cleanUpSafeRepo(git, safeState)
         }
     }
 
