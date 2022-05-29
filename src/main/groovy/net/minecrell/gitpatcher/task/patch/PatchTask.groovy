@@ -32,6 +32,8 @@ import org.gradle.api.tasks.Internal
 
 abstract class PatchTask extends SubmoduleTask {
 
+    private static final String SAFE_DIRECTORY = "safe.directory"
+
     @Internal
     File root
 
@@ -102,17 +104,18 @@ abstract class PatchTask extends SubmoduleTask {
             return null
         }
 
-        def safeDirs = git.config('--global', '--get-all', 'safe.directory').readText()?.split(System.lineSeparator())
-        def hasPatched = safeDirs != null && safeDirs.contains(git.repo.absolutePath)
-        def hasUpstream = safeDirs != null && safeDirs.contains(this.submoduleRoot.absolutePath)
+        def safeDirs = safeDirs(git)
+        def hasPatched = safeDirs.contains(repo.absolutePath)
+        def hasUpstream = safeDirs.contains(this.submoduleRoot.absolutePath)
+
        if (!hasPatched) {
             // add patched root
-            git.config('--global', '--add', 'safe.directory', git.repo.absolutePath) >> null
+            git.config('--global', '--add', SAFE_DIRECTORY, repo.absolutePath) >> null
        }
 
        if (!hasUpstream) {
             // add submodule
-            git.config('--global', '--add', 'safe.directory', this.submoduleRoot.absolutePath) >> null
+            git.config('--global', '--add', SAFE_DIRECTORY, this.submoduleRoot.absolutePath) >> null
         }
 
         return new RepoState(hasUpstream, hasPatched)
@@ -123,19 +126,36 @@ abstract class PatchTask extends SubmoduleTask {
             return
         }
 
-        if (!state.hasPatched) {
-            git.config('--global', '--remove', 'safe.directory', git.repo.absolutePath) >> null
+        def safeDirs = safeDirs(git)
+
+        def changed = false
+        if (!state.hadPatched) {
+            safeDirs.remove(repo.absolutePath)
+            changed = true
         }
 
-        if (!state.hasUpstream) {
-            git.config('--global', '--remove', 'safe.directory', this.submoduleRoot.absolutePath) >> null
+        if (!state.hadUpstream) {
+            safeDirs.remove(this.submoduleRoot.absolutePath)
+            changed = true
         }
+
+        if (changed) {
+            git.config('--global', '--unset-all', SAFE_DIRECTORY)
+            safeDirs.each {
+                git.config('--global', '--add', SAFE_DIRECTORY, it)
+            }
+        }
+    }
+
+    private List<String> safeDirs(final Git git) {
+        String safeDirs = git.config('--global', '--get-all', SAFE_DIRECTORY).readText()
+        return safeDirs == null ? [] : safeDirs.split('\n').toList()
     }
 
     @Immutable
     static class RepoState {
-        boolean hasUpstream
-        boolean hasPatched
+        boolean hadUpstream
+        boolean hadPatched
     }
 
 }
