@@ -73,7 +73,7 @@ abstract class ApplyPatchesTask extends PatchTask {
     @TaskAction
     void applyPatches() {
         def git = new Git(submoduleRoot)
-        def safeState = addAsSafeRepo(git)
+        def safeState = setupGit(git)
         try {
             git.branch('-f', 'upstream') >> null
 

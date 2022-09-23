@@ -42,6 +42,12 @@ abstract class PatchTask extends SubmoduleTask {
     @Console
     public abstract Property<Boolean> getAddAsSafeDirectory()
 
+    @Console
+    public abstract Property<String> getCommitterName()
+
+    @Console
+    public abstract Property<String> getCommitterEmail()
+
     protected File[] getPatches() {
         if (!patchDir.directory) {
             return new File[0]
@@ -91,6 +97,18 @@ abstract class PatchTask extends SubmoduleTask {
     String getCachedSubmoduleRef() {
         readCache()
         return cachedRefs[1]
+    }
+
+    protected RepoState setupGit(final Git git) {
+        if (this.committerName.isPresent()) {
+          git.committerNameOverride = this.committerName.get()
+        }
+
+        if (this.committerEmail.isPresent()) {
+          git.committerEmailOverride = this.committerEmail.get()
+        }
+
+        return this.addAsSafeRepo(git)
     }
 
     /**

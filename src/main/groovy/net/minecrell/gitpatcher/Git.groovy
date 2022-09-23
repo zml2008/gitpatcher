@@ -26,14 +26,28 @@ import groovy.transform.CompileStatic
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
+import javax.annotation.Nullable
+
 class Git {
 
     private static final Logger LOGGER = Logging.getLogger(Git)
 
     File repo
+    @Nullable String committerNameOverride
+    @Nullable String committerEmailOverride
 
     Git(File repo) {
         setRepo(repo)
+    }
+
+    private def decorateEnv(Map env) {
+      if (this.committerNameOverride != null) {
+        env["GIT_COMMITTER_NAME"] = this.committerNameOverride
+      }
+
+      if (this.committerEmailOverride != null) {
+        env["GIT_COMMITTER_EMAIL"] = this.committerEmailOverride
+      }
     }
 
     void setRepo(File repo) {
@@ -52,7 +66,10 @@ class Git {
     Command run(String name, Object input) {
         def args = ['git', '--no-pager', name.replace('_' as char, '-' as char), *input]
         LOGGER.info("gitpatcher: executing {}", args)
-        return new Command(args.execute(null as String[], repo))
+        def builder = new ProcessBuilder(*args)
+        this.decorateEnv(builder.environment())
+        builder.directory = repo
+        return new Command(builder.start())
     }
 
     @Override

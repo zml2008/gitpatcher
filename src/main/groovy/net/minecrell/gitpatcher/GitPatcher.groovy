@@ -50,6 +50,8 @@ class GitPatcher implements Plugin<Project> {
 
             tasks.withType(PatchTask).configureEach {
                 addAsSafeDirectory.set(extension.addAsSafeDirectory)
+                committerName.set(extension.committerNameOverride)
+                committerEmail.set(extension.committerEmailOverride)
             }
 
             afterEvaluate {

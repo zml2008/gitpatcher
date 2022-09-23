@@ -80,7 +80,7 @@ abstract class MakePatchesTask extends PatchTask {
         }
 
         def git = new Git(repo)
-        def safeState = addAsSafeRepo(git)
+        def safeState = setupGit(git)
         try {
             git.format_patch('--no-stat', '--zero-commit', '--full-index', '--no-signature', '-N', '-o', patchDir.absolutePath, 'origin/upstream') >> null
 

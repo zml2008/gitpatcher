@@ -42,6 +42,10 @@ class PatchExtension {
 
     final Property<Boolean> addAsSafeDirectory
 
+    final Property<String> committerNameOverride
+
+    final Property<String> committerEmailOverride
+
     @Inject
     PatchExtension(final ObjectFactory objects, final ProviderFactory providers) {
         this.addAsSafeDirectory = objects.property(Boolean.class)
@@ -50,6 +54,8 @@ class PatchExtension {
                     .map { it.equals("true") }
                     .orElse(false)
             )
+        this.committerNameOverride = objects.property(String).convention("GitPatcher")
+        this.committerEmailOverride = objects.property(String).convention("gitpatcher@noreply")
     }
 
 }
