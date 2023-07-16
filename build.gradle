@@ -23,7 +23,7 @@ indra {
     github("zml2008", "gitpatcher")
 
     publishSnapshotsTo("stellardrift", "https://repo.stellardrift.ca/repository/snapshots/")
-    publishSnapshotsTo("stellardrift", "https://repo.stellardrift.ca/repository/releases/")
+    publishReleasesTo("stellardrift", "https://repo.stellardrift.ca/repository/releases/")
     configurePublications {
         pom {
             developers {
