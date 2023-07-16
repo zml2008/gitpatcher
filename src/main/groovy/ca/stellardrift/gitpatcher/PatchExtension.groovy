@@ -20,18 +20,42 @@
  * THE SOFTWARE.
  */
 
-package net.minecrell.gitpatcher.task
+package ca.stellardrift.gitpatcher
 
 import groovy.transform.CompileStatic
-import org.gradle.api.tasks.Input
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.ProviderFactory
+
+import javax.inject.Inject
 
 @CompileStatic
-abstract class SubmoduleTask extends GitTask {
+class PatchExtension {
 
-    @Input
+    File root
+
     String submodule
 
-    {
-        onlyIf { submodule != null }
+    File target
+
+    File patches
+
+    final Property<Boolean> addAsSafeDirectory
+
+    final Property<String> committerNameOverride
+
+    final Property<String> committerEmailOverride
+
+    @Inject
+    PatchExtension(final ObjectFactory objects, final ProviderFactory providers) {
+        this.addAsSafeDirectory = objects.property(Boolean.class)
+            .convention(
+                providers.environmentVariable("GITPATCHER_ADD_GIT_SAFEDIR")
+                    .map { it.equals("true") }
+                    .orElse(false)
+            )
+        this.committerNameOverride = objects.property(String).convention("GitPatcher")
+        this.committerEmailOverride = objects.property(String).convention("gitpatcher@noreply")
     }
+
 }

@@ -20,14 +20,14 @@
  * THE SOFTWARE.
  */
 
-package net.minecrell.gitpatcher
+package ca.stellardrift.gitpatcher
 
 import groovy.transform.CompileStatic
-import net.minecrell.gitpatcher.task.FindGitTask
-import net.minecrell.gitpatcher.task.UpdateSubmodulesTask
-import net.minecrell.gitpatcher.task.patch.ApplyPatchesTask
-import net.minecrell.gitpatcher.task.patch.MakePatchesTask
-import net.minecrell.gitpatcher.task.patch.PatchTask
+import ca.stellardrift.gitpatcher.task.FindGitTask
+import ca.stellardrift.gitpatcher.task.UpdateSubmodulesTask
+import ca.stellardrift.gitpatcher.task.patch.ApplyPatchesTask
+import ca.stellardrift.gitpatcher.task.patch.MakePatchesTask
+import ca.stellardrift.gitpatcher.task.patch.PatchTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 

@@ -72,7 +72,7 @@ indraPluginPublishing {
     website 'https://github.com/zml2008/gitpatcher'
     plugin(
            "gitpatcher",
-            "net.minecrell.gitpatcher.GitPatcher",
+            "ca.stellardrift.gitpatcher.GitPatcher",
             "GitPatcher",
             description,
             ["git", "patching"]

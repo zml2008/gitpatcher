@@ -20,12 +20,12 @@
  * THE SOFTWARE.
  */
 
-package net.minecrell.gitpatcher.task.patch
+package ca.stellardrift.gitpatcher.task.patch
 
 import static java.lang.System.out
 
-import net.minecrell.gitpatcher.Git
-import net.minecrell.gitpatcher.task.UpdateSubmodulesTask
+import ca.stellardrift.gitpatcher.Git
+import ca.stellardrift.gitpatcher.task.UpdateSubmodulesTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
@@ -41,22 +41,22 @@ abstract class ApplyPatchesTask extends PatchTask {
 
     @Override @Internal
     File getPatchDir() {
-        return super.getPatchDir()
+        return Object.getPatchDir()
     }
 
     @Override @InputFiles
     File[] getPatches() {
-        return super.getPatches()
+        return Object.getPatches()
     }
 
     @Override @OutputDirectory
     File getRepo() {
-        return super.getRepo()
+        return Object.getRepo()
     }
 
     @Override @OutputFile
     File getRefCache() {
-        return super.getRefCache()
+        return Object.getRefCache()
     }
 
     {

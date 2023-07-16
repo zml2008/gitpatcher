@@ -20,12 +20,12 @@
  * THE SOFTWARE.
  */
 
-package net.minecrell.gitpatcher.task.patch
+package ca.stellardrift.gitpatcher.task.patch
 
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
-import net.minecrell.gitpatcher.Git
-import net.minecrell.gitpatcher.task.SubmoduleTask
+import ca.stellardrift.gitpatcher.Git
+import ca.stellardrift.gitpatcher.task.SubmoduleTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal

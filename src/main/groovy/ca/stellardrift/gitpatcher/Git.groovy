@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package net.minecrell.gitpatcher
+package ca.stellardrift.gitpatcher
 
 import groovy.transform.CompileStatic
 import org.gradle.api.logging.Logger

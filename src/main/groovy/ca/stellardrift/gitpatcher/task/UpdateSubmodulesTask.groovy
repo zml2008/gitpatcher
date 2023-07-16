@@ -20,11 +20,11 @@
  * THE SOFTWARE.
  */
 
-package net.minecrell.gitpatcher.task
+package ca.stellardrift.gitpatcher.task
 
 import static java.lang.System.out
 
-import net.minecrell.gitpatcher.Git
+import ca.stellardrift.gitpatcher.Git
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
@@ -55,7 +55,7 @@ class UpdateSubmodulesTask extends SubmoduleTask {
 
     @Override @InputDirectory
     File getRepo() {
-        return super.getRepo()
+        return Object.getRepo()
     }
 
 }

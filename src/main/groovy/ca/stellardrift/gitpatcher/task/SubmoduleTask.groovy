@@ -20,28 +20,18 @@
  * THE SOFTWARE.
  */
 
-package net.minecrell.gitpatcher.task
+package ca.stellardrift.gitpatcher.task
 
-import net.minecrell.gitpatcher.Git
-import org.gradle.api.DefaultTask
+import groovy.transform.CompileStatic
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
 
-abstract class FindGitTask extends DefaultTask {
+@CompileStatic
+abstract class SubmoduleTask extends GitTask {
 
     @Input
     String submodule
 
-    @TaskAction
-    void findGit() {
-        def git = new Git(project.rootDir)
-        try {
-            def version = git.version().text.readLines().join(', ')
-            logger.lifecycle("Using $version for patching submodule $submodule.")
-        } catch (Throwable e) {
-            throw new UnsupportedOperationException(
-                    'Failed to verify Git version. Make sure running the Gradle build in an environment where Git is in your PATH.', e);
-        }
+    {
+        onlyIf { submodule != null }
     }
-
 }
