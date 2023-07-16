@@ -21,6 +21,7 @@ indra {
         target 8
     }
     github("zml2008", "gitpatcher")
+    mitLicense()
 
     publishSnapshotsTo("stellardrift", "https://repo.stellardrift.ca/repository/snapshots/")
     publishReleasesTo("stellardrift", "https://repo.stellardrift.ca/repository/releases/")
