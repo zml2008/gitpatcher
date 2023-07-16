@@ -2,43 +2,58 @@ plugins {
     id 'java-gradle-plugin'
     id 'groovy'
 
-    id 'eclipse'
-
-    id 'maven-publish'
-    id 'com.gradle.plugin-publish' version '1.2.0'
-
-    id 'org.cadixdev.licenser' version '0.6.1'
+    alias libs.plugins.indra
+    alias libs.plugins.indra.gradlePluginPublish
+    alias libs.plugins.indra.licenserSpotless
+    alias libs.plugins.spotless
+    alias libs.plugins.pluginPublishPlugin
 }
 
 group = 'ca.stellardrift'
 description = 'A Gradle plugin to manage patches for Git repositories'
 
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
-
 tasks.withType(GroovyCompile).configureEach {
     groovyOptions.optimizationOptions.indy = true
 }
 
-license {
-    header = file('LICENSE')
-    include '**/*.java'
-    include '**/*.groovy'
-}
+indra {
+    javaVersions {
+        target 8
+    }
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
+    github("zml2008", "gitpatcher")
 
-publishing {
-    publications {
-        withType(MavenPublication).configureEach {
-            pom {
-                description = project.description
+    configurePublications {
+        pom {
+            developers {
+                developer {
+                    id = "zml"
+                    name = "zml"
+                    timezone = "America/Vancouver"
+                }
+            }
+            contributors {
+                contributor {
+                    id = "minecrell"
+                    name = "Minecrell"
+                    roles = ["Former Maintainer"]
+                }
+                contributor {
+                    id = "forge"
+                    name = "MinecraftForge"
+                    roles = ["Former Maintainer"]
+                }
             }
         }
     }
+}
+
+indraSpotlessLicenser {
+    licenseHeaderFile file('LICENSE')
+}
+
+spotless {
+    ratchetFrom 'origin/master' // todo
 }
 
 tasks.named('javadocJar', Jar).configure {
@@ -52,20 +67,13 @@ validatePlugins {
     failOnWarning = false // abstract classes should be ok without annotations?
 }
 
-gradlePlugin {
-    plugins {
-        gitpatcherPlugin {
-            id = 'ca.stellardrift.gitpatcher'
-            implementationClass = 'net.minecrell.gitpatcher.GitPatcher'
-            displayName = 'gitpatcher'
-            description = project.description
-        }
-    }
+indraPluginPublishing {
+    website 'https://github.com/zml2008/gitpatcher'
+    plugin(
+           "gitpatcher",
+            "net.minecrell.gitpatcher.GitPatcher",
+            "GitPatcher",
+            description,
+            ["git", "patching"]
+    )
 }
-
-/*pluginBundle {
-    website = 'https://github.com/zml2008/gitpatcher'
-    vcsUrl = website
-    description = project.description
-    tags = ['git']
-}*/

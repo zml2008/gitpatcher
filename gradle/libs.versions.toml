@@ -1,0 +1,18 @@
+[metadata]
+version = "1.0"
+
+[versions]
+indra = "3.1.2"
+jspecify = "0.3.0"
+spotless = "6.19.0"
+pluginPublish = "1.2.0"
+
+[libraries]
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+
+[plugins]
+indra = { id = "net.kyori.indra", version.ref = "indra" }
+indra-gradlePluginPublish = { id = "net.kyori.indra.publishing.gradle-plugin", version.ref = "indra" }
+indra-licenserSpotless = { id = "net.kyori.indra.licenser.spotless", version.ref = "indra" }
+pluginPublishPlugin = { id = "com.gradle.plugin-publish", version.ref = "pluginPublish" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
