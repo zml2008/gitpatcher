@@ -11,6 +11,7 @@ jobs:
     uses: "KyoriPowered/.github/.github/workflows/shared-ci.yaml@trunk"
     permissions:
         actions: write
+        contents: read
     secrets:
       STELLARDRIFT_USERNAME: ${{ secrets.STELLARDRIFT_USERNAME }}
       STELLARDRIFT_PASSWORD: ${{ secrets.STELLARDRIFT_PASSWORD }}
