@@ -3,27 +3,20 @@ plugins {
     id 'groovy'
 
     id 'eclipse'
-    id 'idea'
 
     id 'maven-publish'
-    id 'com.gradle.plugin-publish' version '0.15.0'
+    id 'com.gradle.plugin-publish' version '1.2.0'
 
     id 'org.cadixdev.licenser' version '0.6.1'
-    id 'net.minecraftforge.gradleutils' version '1.+'
 }
 
-group = 'net.minecraftforge' // Publishing under our name as we are a fork
-version = gradleutils.getTagOffsetBranchVersion(null, 'master', 'HEAD')
+group = 'ca.stellardrift'
 description = 'A Gradle plugin to manage patches for Git repositories'
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
 
-repositories {
-    mavenCentral()
-}
-
-tasks.withType(GroovyCompile) {
+tasks.withType(GroovyCompile).configureEach {
     groovyOptions.optimizationOptions.indy = true
 }
 
@@ -40,25 +33,9 @@ java {
 
 publishing {
     publications {
-        withType(MavenPublication) {
+        withType(MavenPublication).configureEach {
             pom {
                 description = project.description
-            }
-        }
-    }
-    repositories {
-        maven {
-            if (System.env.MAVEN_USER) {
-                url 'https://maven.minecraftforge.net/releases/'
-                authentication {
-                    basic(BasicAuthentication)
-                }
-                credentials {
-                    username = System.env.MAVEN_USER ?: 'not'
-                    password = System.env.MAVEN_PASSWORD ?: 'set'
-                }
-            } else {
-                url 'file://' + rootProject.file('repo').getAbsolutePath()
             }
         }
     }
@@ -78,7 +55,7 @@ validatePlugins {
 gradlePlugin {
     plugins {
         gitpatcherPlugin {
-            id = 'net.minecraftforge.gitpatcher'
+            id = 'ca.stellardrift.gitpatcher'
             implementationClass = 'net.minecrell.gitpatcher.GitPatcher'
             displayName = 'gitpatcher'
             description = project.description
@@ -86,9 +63,9 @@ gradlePlugin {
     }
 }
 
-pluginBundle {
-    website = 'https://github.com/MinecraftForge/gitpatcher'
+/*pluginBundle {
+    website = 'https://github.com/zml2008/gitpatcher'
     vcsUrl = website
     description = project.description
     tags = ['git']
-}
+}*/
