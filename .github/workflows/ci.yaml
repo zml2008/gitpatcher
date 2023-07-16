@@ -1,0 +1,14 @@
+name: "build"
+
+on:
+  push:
+    branches: "**"
+    tags-ignore: ["**"]
+  pull_request:
+
+jobs:
+  call-build:
+    uses: "KyoriPowered/.github/.github/workflows/shared-ci.yaml@trunk"
+    secrets:
+      STELLARDRIFT_USERNAME: ${{ secrets.STELLARDRIFT_USERNAME }}
+      STELLARDRIFT_PASSWORD: ${{ secrets.STELLARDRIFT_PASSWORD }}

@@ -9,7 +9,7 @@ the PATH is required for it to run.
 
   ```gradle
   plugins {
-      id 'net.minecrell.gitpatcher' version '0.9.0'
+      id 'ca.stellardrift.gitpatcher' version '1.0.0'
   }
   ```
 3. Configure gitpatcher:
@@ -27,10 +27,17 @@ the PATH is required for it to run.
 4. That's it! Now you can initialize your repository (see below) and start making commits to it. Then just make the patches and you can apply it to the target repository as often as you want.
 
 # Tasks
-|Name|Description|
-|----|-----------|
-|`updateSubmodules`|Initializes the submodule and updates it if it is outdated.|
-|`applyPatches`|Initializes the target repository and applies the patches from the patch folder.|
-|`makePatches`|Creates or updates the patches in the patch folder.|
+| Name               | Description                                                                      |
+|--------------------|----------------------------------------------------------------------------------|
+| `updateSubmodules` | Initializes the submodule and updates it if it is outdated.                      |
+| `applyPatches`     | Initializes the target repository and applies the patches from the patch folder. |
+| `makePatches`      | Creates or updates the patches in the patch folder.                              |
 
 [example]: https://github.com/LapisBlue/Pore/tree/master/patches
+
+# History
+
+gitpatcher was originally produced by Minecrell and the Cadix team. The MinecraftForge team picked up development for a period of a few years.
+This project is now maintaineud by Stellardrift.
+
+gitpatcher is released under [the MIT license](./LICENSE)

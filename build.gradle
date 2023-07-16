@@ -20,9 +20,10 @@ indra {
     javaVersions {
         target 8
     }
-
     github("zml2008", "gitpatcher")
 
+    publishSnapshotsTo("stellardrift", "https://repo.stellardrift.ca/repository/snapshots/")
+    publishSnapshotsTo("stellardrift", "https://repo.stellardrift.ca/repository/releases/")
     configurePublications {
         pom {
             developers {
@@ -53,7 +54,7 @@ indraSpotlessLicenser {
 }
 
 spotless {
-    ratchetFrom 'origin/master' // todo
+    ratchetFrom 'origin/trunk'
 }
 
 tasks.named('javadocJar', Jar).configure {
