@@ -38,6 +38,6 @@ the PATH is required for it to run.
 # History
 
 gitpatcher was originally produced by Minecrell and the Cadix team. The MinecraftForge team picked up development for a period of a few years.
-This project is now maintaineud by Stellardrift.
+This project is now maintained by Stellardrift.
 
 gitpatcher is released under [the MIT license](./LICENSE)
