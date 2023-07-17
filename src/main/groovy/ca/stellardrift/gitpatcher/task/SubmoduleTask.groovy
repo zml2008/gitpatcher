@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2015-2023, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,19 +20,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package ca.stellardrift.gitpatcher.task
 
 import groovy.transform.CompileStatic
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 
 @CompileStatic
 abstract class SubmoduleTask extends GitTask {
 
     @Input
-    String submodule
+    @Optional
+    abstract Property<String> getSubmodule();
 
     {
-        onlyIf { submodule != null }
+        onlyIf { submodule.isPresent() }
     }
 }

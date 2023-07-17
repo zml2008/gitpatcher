@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2023, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,29 +20,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher.task
+package ca.stellardrift.gitpatcher;
 
-import ca.stellardrift.gitpatcher.Git
-import org.gradle.api.DefaultTask
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
+import net.kyori.mammoth.test.TestContext;
+import org.junit.jupiter.api.DisplayName;
 
-abstract class FindGitTask extends DefaultTask {
+import java.io.IOException;
 
-    @Input
-    abstract Property<String> getSubmodule()
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-    @TaskAction
-    void findGit() {
-        def git = new Git(project.rootDir)
-        try {
-            def version = git.version().text.readLines().join(', ')
-            logger.lifecycle("Using $version for patching submodule ${submodule.get()}.")
-        } catch (Throwable e) {
-            throw new UnsupportedOperationException(
-                    'Failed to verify Git version. Make sure running the Gradle build in an environment where Git is in your PATH.', e);
-        }
+public class GitPatcherTest {
+
+    @GitPatcherFunctionalTest
+    @DisplayName("pluginSimplyApplies")
+    void testPluginSimplyApplies(final TestContext ctx) throws IOException {
+        ctx.copyInput("build.gradle");
+        ctx.copyInput("settings.gradle");
+
+        assertDoesNotThrow(() -> ctx.build("help"));
     }
-
 }

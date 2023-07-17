@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2015-2023, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,14 +20,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package ca.stellardrift.gitpatcher.task.patch
 
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import ca.stellardrift.gitpatcher.Git
 import ca.stellardrift.gitpatcher.task.SubmoduleTask
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Internal
 
@@ -35,9 +39,9 @@ abstract class PatchTask extends SubmoduleTask {
     private static final String SAFE_DIRECTORY = "safe.directory"
 
     @Internal
-    File root
+    abstract DirectoryProperty getRoot();
 
-    File patchDir
+    abstract DirectoryProperty getPatchDir();
 
     @Console
     public abstract Property<Boolean> getAddAsSafeDirectory()
@@ -49,6 +53,7 @@ abstract class PatchTask extends SubmoduleTask {
     public abstract Property<String> getCommitterEmail()
 
     protected File[] getPatches() {
+        def patchDir = this.patchDir.get().asFile
         if (!patchDir.directory) {
             return new File[0]
         }
@@ -57,17 +62,17 @@ abstract class PatchTask extends SubmoduleTask {
     }
 
     @Internal
-    File getSubmoduleRoot() {
-        return new File(root, submodule)
+    Provider<Directory> getSubmoduleRoot() {
+        return root.zip(submodule) { r, s -> r.dir(s) }
     }
 
     @Internal
-    File getGitDir() {
-        return new File(repo, '.git')
+    Provider<Directory> getGitDir() {
+        return repo.map { it.dir('.git') }
     }
 
-    File getRefCache() {
-        return new File(gitDir, '.gitpatcher_ref')
+    Provider<RegularFile> getRefCache() {
+        return gitDir.map { it.file('.gitpatcher_ref') }
     }
 
     private List<String> cachedRefs
@@ -75,7 +80,7 @@ abstract class PatchTask extends SubmoduleTask {
     @CompileStatic
     private void readCache() {
         if (cachedRefs == null) {
-            File refCache = this.refCache
+            File refCache = this.refCache.get().asFile
             if (refCache.file) {
                 this.cachedRefs = refCache.readLines().findResults {
                     def trimmed = it.trim()
@@ -148,12 +153,12 @@ abstract class PatchTask extends SubmoduleTask {
 
         def changed = false
         if (!state.hadPatched) {
-            safeDirs.remove(repo.absolutePath)
+            safeDirs.remove(repo.get().asFile.absolutePath)
             changed = true
         }
 
         if (!state.hadUpstream) {
-            safeDirs.remove(this.submoduleRoot.absolutePath)
+            safeDirs.remove(this.submoduleRoot.get().asFile.absolutePath)
             changed = true
         }
 

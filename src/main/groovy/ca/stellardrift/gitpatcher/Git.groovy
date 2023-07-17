@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2015-2023, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,10 +20,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package ca.stellardrift.gitpatcher
 
 import groovy.transform.CompileStatic
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
@@ -35,6 +37,10 @@ class Git {
     File repo
     @Nullable String committerNameOverride
     @Nullable String committerEmailOverride
+
+    Git(DirectoryProperty repo) {
+        this(repo.get().asFile)
+    }
 
     Git(File repo) {
         setRepo(repo)
@@ -53,6 +59,14 @@ class Git {
     void setRepo(File repo) {
         this.repo = repo
         assert repo.exists()
+    }
+
+    void setRepo(Directory repo) {
+        this.setRepo(repo.asFile)
+    }
+
+    void setRepo(DirectoryProperty repo) {
+        this.setRepo(repo.get().asFile)
     }
 
     String getStatus() {

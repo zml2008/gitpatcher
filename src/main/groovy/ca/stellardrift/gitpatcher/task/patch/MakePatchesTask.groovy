@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2015-2023, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,8 +20,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package ca.stellardrift.gitpatcher.task.patch
+
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
 
 import static java.lang.System.out
 
@@ -37,29 +41,24 @@ abstract class MakePatchesTask extends PatchTask {
     private static final Closure HUNK = { it.startsWith('@@') }
 
     @Override @InputDirectory
-    File getRepo() {
-        return Object.getRepo()
-    }
+    abstract DirectoryProperty getRepo()
 
     @Override @Internal
-    File getRefCache() { // not used in this task
-        return Object.getRefCache()
+    Provider<RegularFile> getRefCache() { // not used in this task
+        return super.getRefCache()
     }
 
     @Override @OutputDirectory
-    File getPatchDir() {
-        return Object.getPatchDir()
-    }
+    abstract DirectoryProperty getPatchDir()
 
     @Override @Internal
     File[] getPatches() {
-        return Object.getPatches()
+        return super.getPatches()
     }
-
 
     {
         outputs.upToDateWhen {
-            if (!repo.directory) {
+            if (!repo.get().asFile.directory) {
                 return false
             }
 
@@ -70,7 +69,7 @@ abstract class MakePatchesTask extends PatchTask {
 
     @TaskAction
     void makePatches() {
-        if (patchDir.isDirectory()) {
+        if (patchDir.get().asFile.isDirectory()) {
             def patches = this.patches
             if (patches) {
                 assert patches*.delete(), 'Failed to delete old patch'
@@ -82,10 +81,10 @@ abstract class MakePatchesTask extends PatchTask {
         def git = new Git(repo)
         def safeState = setupGit(git)
         try {
-            git.format_patch('--no-stat', '--zero-commit', '--full-index', '--no-signature', '-N', '-o', patchDir.absolutePath, 'origin/upstream') >> null
+            git.format_patch('--no-stat', '--zero-commit', '--full-index', '--no-signature', '-N', '-o', patchDir.get().asFile.absolutePath, 'origin/upstream') >> null
 
             git.repo = root
-            git.add('-A', patchDir.absolutePath) >> out
+            git.add('-A', patchDir.get().asFile.absolutePath) >> out
 
             didWork = false
             for (def patch : patches) {

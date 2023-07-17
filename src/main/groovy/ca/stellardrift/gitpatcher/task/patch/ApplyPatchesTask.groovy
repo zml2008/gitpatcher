@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2015-2023, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,8 +20,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package ca.stellardrift.gitpatcher.task.patch
+
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.Provider
 
 import static java.lang.System.out
 
@@ -40,28 +44,24 @@ abstract class ApplyPatchesTask extends PatchTask {
     UpdateSubmodulesTask updateTask
 
     @Override @Internal
-    File getPatchDir() {
-        return Object.getPatchDir()
-    }
+    abstract DirectoryProperty getPatchDir()
 
     @Override @InputFiles
     File[] getPatches() {
-        return Object.getPatches()
+        return super.getPatches()
     }
 
     @Override @OutputDirectory
-    File getRepo() {
-        return Object.getRepo()
-    }
+    abstract DirectoryProperty getRepo()
 
     @Override @OutputFile
-    File getRefCache() {
-        return Object.getRefCache()
+    Provider<RegularFile> getRefCache() {
+        return super.getRefCache()
     }
 
     {
         outputs.upToDateWhen {
-            if (!repo.directory) {
+            if (!repo.get().asFile.directory) {
                 return false
             }
 
@@ -72,23 +72,23 @@ abstract class ApplyPatchesTask extends PatchTask {
 
     @TaskAction
     void applyPatches() {
-        def git = new Git(submoduleRoot)
+        def git = new Git(submoduleRoot.get().asFile)
         def safeState = setupGit(git)
         try {
             git.branch('-f', 'upstream') >> null
 
-            def gitDir = new File(repo, '.git')
+            def gitDir = repo.get().dir('.git').asFile
             if (!gitDir.isDirectory() || gitDir.list().length == 0) {
                 logger.lifecycle 'Creating {} repository...', repo
 
                 assert gitDir.deleteDir()
                 git.repo = root
-                git.clone('--recursive', submodule, repo.absolutePath, '-b', 'upstream') >> out
+                git.clone('--recursive', submodule.get(), repo.get().asFile.absolutePath, '-b', 'upstream') >> out
             }
 
             logger.lifecycle 'Resetting {}...', repo
 
-            git.repo = repo
+            git.setRepo(repo)
             git.fetch('origin') >> null
             git.checkout('-B', 'master', 'origin/upstream') >> null
             git.reset('--hard') >> out
@@ -104,12 +104,12 @@ abstract class ApplyPatchesTask extends PatchTask {
 
             def patches = this.patches
             if (patches.length > 0) {
-                logger.lifecycle 'Applying patches from {} to {}', patchDir, repo
+                logger.lifecycle 'Applying patches from {} to {}', patchDir.get().asFile, repo.get().asFile
 
                 git.am('--abort') >>> null
                 git.am('--3way', *patches.collect { it.absolutePath }) >> out
 
-                logger.lifecycle 'Successfully applied patches from {} to {}', patchDir, repo
+                logger.lifecycle 'Successfully applied patches from {} to {}', patchDir.get().asFile, repo.get().asFile
             }
 
             refCache.text = git.ref + '\n' + updateTask.ref

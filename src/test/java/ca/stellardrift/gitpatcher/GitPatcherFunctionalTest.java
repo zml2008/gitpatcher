@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2023, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,43 +20,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ca.stellardrift.gitpatcher;
 
-package ca.stellardrift.gitpatcher
+import net.kyori.mammoth.test.GradleFunctionalTest;
+import net.kyori.mammoth.test.GradleParameters;
+import net.kyori.mammoth.test.TestVariant;
+import org.junit.jupiter.api.DisplayName;
 
-import groovy.transform.CompileStatic
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.ProviderFactory
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import javax.inject.Inject
-
-@CompileStatic
-class PatchExtension {
-
-    File root
-
-    String submodule
-
-    File target
-
-    File patches
-
-    final Property<Boolean> addAsSafeDirectory
-
-    final Property<String> committerNameOverride
-
-    final Property<String> committerEmailOverride
-
-    @Inject
-    PatchExtension(final ObjectFactory objects, final ProviderFactory providers) {
-        this.addAsSafeDirectory = objects.property(Boolean.class)
-            .convention(
-                providers.environmentVariable("GITPATCHER_ADD_GIT_SAFEDIR")
-                    .map { it.equals("true") }
-                    .orElse(false)
-            )
-        this.committerNameOverride = objects.property(String).convention("GitPatcher")
-        this.committerEmailOverride = objects.property(String).convention("gitpatcher@noreply")
-    }
-
+@GradleFunctionalTest
+@GradleParameters({"--warning-mode", "fail"})
+@TestVariant(gradleVersion = "8.2.1")
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
+public @interface GitPatcherFunctionalTest {
 }

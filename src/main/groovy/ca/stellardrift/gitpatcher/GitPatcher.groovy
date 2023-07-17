@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2015-2023, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,7 +20,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package ca.stellardrift.gitpatcher
 
 import groovy.transform.CompileStatic
@@ -40,8 +40,7 @@ class GitPatcher implements Plugin<Project> {
     void apply(Project project) {
         this.project = project
         project.with {
-            this.extension = extensions.create('patches', PatchExtension)
-            extension.root = projectDir
+            this.extension = extensions.create(PatchExtension, 'patches', PatchExtensionImpl)
 
             def findGit = tasks.register('findGit', FindGitTask)
             def updateSubmodules = tasks.register('updateSubmodules', UpdateSubmodulesTask) { dependsOn findGit }
@@ -53,26 +52,23 @@ class GitPatcher implements Plugin<Project> {
                 committerName.set(extension.committerNameOverride)
                 committerEmail.set(extension.committerEmailOverride)
             }
+            findGit.configure { submodule.set(extension.submodule)}
+            updateSubmodules.configure {
+                repo.set(extension.root)
+                submodule.set(extension.submodule)
+            }
+
+            ['applyPatches', 'makePatches'].each { name ->
+                tasks.named(name, PatchTask) {
+                    repo.set(extension.target)
+                    root.set(extension.root)
+                    submodule.set(extension.submodule)
+                    patchDir.set(extension.patches)
+                }
+            }
 
             afterEvaluate {
-                // Configure the settings from our extension
-                findGit.configure {
-                    submodule = extension.submodule
-                }
-
-                configure([tasks.applyPatches, tasks.makePatches]) {
-                    repo = extension.target
-                    root = extension.root
-                    submodule = extension.submodule
-                    patchDir = extension.patches
-                }
-
                 tasks.applyPatches.updateTask = tasks.updateSubmodules
-
-                updateSubmodules.configure {
-                    repo = extension.root
-                    submodule = extension.submodule
-                }
             }
         }
     }

@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2015-2023, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,8 +20,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package ca.stellardrift.gitpatcher.task
+
+import org.gradle.api.file.DirectoryProperty
 
 import static java.lang.System.out
 
@@ -29,14 +31,14 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
-class UpdateSubmodulesTask extends SubmoduleTask {
+abstract class UpdateSubmodulesTask extends SubmoduleTask {
 
     private String ref
 
     @TaskAction
     void updateSubmodules() {
         def git = new Git(repo)
-        def result = git.submodule('status', '--', submodule).text
+        def result = git.submodule('status', '--', submodule.get()).text
 
         this.ref = result[1 .. result.indexOf(' ', 1) - 1]
 
@@ -54,8 +56,6 @@ class UpdateSubmodulesTask extends SubmoduleTask {
     }
 
     @Override @InputDirectory
-    File getRepo() {
-        return Object.getRepo()
-    }
+    abstract DirectoryProperty getRepo()
 
 }

@@ -12,6 +12,14 @@ plugins {
 group = 'ca.stellardrift'
 description = 'A Gradle plugin to manage patches for Git repositories'
 
+dependencies {
+    testImplementation platform(libs.junit.bom)
+    testImplementation libs.mammoth.test
+    testImplementation libs.junit.jupiter.api
+    testRuntimeOnly libs.junit.jupiter.engine
+    testRuntimeOnly libs.junit.launcher
+}
+
 tasks.withType(GroovyCompile).configureEach {
     groovyOptions.optimizationOptions.indy = true
 }
@@ -19,6 +27,7 @@ tasks.withType(GroovyCompile).configureEach {
 indra {
     javaVersions {
         target 8
+        testWith 8, 11, 17, 20
     }
     github("zml2008", "gitpatcher")
     mitLicense()
@@ -56,6 +65,10 @@ indraSpotlessLicenser {
 
 spotless {
     ratchetFrom 'origin/trunk'
+}
+
+tasks.named('javadoc') {
+    enabled = false
 }
 
 tasks.named('javadocJar', Jar).configure {
