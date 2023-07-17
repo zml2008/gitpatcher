@@ -77,6 +77,10 @@ tasks.named('javadocJar', Jar).configure {
     from groovydoc.destinationDir
 }
 
+tasks.named('jar', Jar) {
+    indraGit.applyVcsInformationToManifest(manifest)
+}
+
 validatePlugins {
     ignoreFailures = true
     failOnWarning = false // abstract classes should be ok without annotations?
