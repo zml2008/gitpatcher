@@ -51,8 +51,8 @@ abstract class ApplyPatchesTask extends PatchTask {
         return super.getPatches()
     }
 
-    @Override @OutputDirectory
-    abstract DirectoryProperty getRepo()
+    @OutputDirectory
+    abstract DirectoryProperty getDestRepo()
 
     @Override @OutputFile
     Provider<RegularFile> getRefCache() {
@@ -60,6 +60,7 @@ abstract class ApplyPatchesTask extends PatchTask {
     }
 
     {
+        destRepo.set(repo)
         outputs.upToDateWhen {
             if (!repo.get().asFile.directory) {
                 return false
@@ -93,8 +94,8 @@ abstract class ApplyPatchesTask extends PatchTask {
             git.checkout('-B', 'master', 'origin/upstream') >> null
             git.reset('--hard') >> out
 
-            if (!patchDir.directory) {
-                assert patchDir.mkdirs(), 'Failed to create patch directory'
+            if (!patchDir.get().asFile.directory) {
+                assert patchDir.get().asFile.mkdirs(), 'Failed to create patch directory'
             }
 
             if ('true'.equalsIgnoreCase(git.config('commit.gpgsign').readText())) {
@@ -112,7 +113,7 @@ abstract class ApplyPatchesTask extends PatchTask {
                 logger.lifecycle 'Successfully applied patches from {} to {}', patchDir.get().asFile, repo.get().asFile
             }
 
-            refCache.text = git.ref + '\n' + updateTask.ref
+            refCache.get().asFile.text = git.ref + '\n' + updateTask.ref
         } finally {
             cleanUpSafeRepo(git, safeState)
         }
