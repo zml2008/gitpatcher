@@ -36,6 +36,7 @@ indra {
     publishReleasesTo("stellardrift", "https://repo.stellardrift.ca/repository/releases/")
     configurePublications {
         pom {
+            url = 'https://gitpatcher.stellardrift.ca'
             developers {
                 developer {
                     id = "zml"
