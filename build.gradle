@@ -87,7 +87,7 @@ validatePlugins {
 }
 
 indraPluginPublishing {
-    website 'https://github.com/zml2008/gitpatcher'
+    website 'https://gitpatcher.stellardrift.ca'
     plugin(
            "gitpatcher",
             "ca.stellardrift.gitpatcher.GitPatcher",
