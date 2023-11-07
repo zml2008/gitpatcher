@@ -24,21 +24,16 @@ package ca.stellardrift.gitpatcher.task
 
 import ca.stellardrift.gitpatcher.Git
 import org.gradle.api.DefaultTask
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
 abstract class FindGitTask extends DefaultTask {
-
-    @Input
-    abstract Property<String> getSubmodule()
 
     @TaskAction
     void findGit() {
         def git = new Git(project.rootDir)
         try {
             def version = git.version().text.readLines().join(', ')
-            logger.lifecycle("Using $version for patching submodule ${submodule.get()}.")
+            logger.lifecycle("Using $version for patching submodules.")
         } catch (Throwable e) {
             throw new UnsupportedOperationException(
                     'Failed to verify Git version. Make sure running the Gradle build in an environment where Git is in your PATH.', e);

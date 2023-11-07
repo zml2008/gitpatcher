@@ -26,11 +26,11 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.ProviderFactory;
 
 import javax.inject.Inject;
 
-class PatchExtensionImpl implements PatchExtension {
+abstract class RepoPatchDetailsImpl implements RepoPatchDetails {
+    private final String name;
     private final DirectoryProperty root;
     private final Property<String> submodule;
     private final DirectoryProperty target;
@@ -41,19 +41,20 @@ class PatchExtensionImpl implements PatchExtension {
     private final Property<String> committerEmailOverride;
 
     @Inject
-    public PatchExtensionImpl(final ObjectFactory objects, final ProviderFactory providers, final ProjectLayout layout) {
+    public RepoPatchDetailsImpl(final String name, final ObjectFactory objects, final ProjectLayout layout) {
+        this.name = name;
         this.root = objects.directoryProperty().convention(layout.getProjectDirectory());
         this.submodule = objects.property(String.class);
         this.target = objects.directoryProperty();
         this.patches = objects.directoryProperty();
-        this.addAsSafeDirectory = objects.property(Boolean.class)
-            .convention(
-                providers.environmentVariable("GITPATCHER_ADD_GIT_SAFEDIR")
-                    .map(it -> it.equals("true"))
-                    .orElse(false)
-            );
-        this.committerNameOverride = objects.property(String.class).convention("GitPatcher");
-        this.committerEmailOverride = objects.property(String.class).convention("gitpatcher@noreply");
+        this.addAsSafeDirectory = objects.property(Boolean.class);
+        this.committerNameOverride = objects.property(String.class);
+        this.committerEmailOverride = objects.property(String.class);
+    }
+
+    @Override
+    public String getName() {
+        return this.name;
     }
 
     @Override

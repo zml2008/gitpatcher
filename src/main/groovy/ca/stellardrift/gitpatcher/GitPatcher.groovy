@@ -30,45 +30,68 @@ import ca.stellardrift.gitpatcher.task.patch.MakePatchesTask
 import ca.stellardrift.gitpatcher.task.patch.PatchTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.TaskProvider
 
 class GitPatcher implements Plugin<Project> {
 
     protected Project project
-    protected PatchExtension extension
+    protected GitPatcherExtension extension
 
     @Override
     void apply(Project project) {
         this.project = project
+
+        def rootApply = project.tasks.register("applyPatches")
+        def rootRebuild = project.tasks.register("makePatches")
+        def rootUpdate = project.tasks.register("updateSubmodules")
+
         project.with {
-            this.extension = extensions.create(PatchExtension, 'patches', PatchExtensionImpl)
+            this.extension = extensions.create(GitPatcherExtension, 'gitPatcher', GitPatcherExtensionImpl)
 
             def findGit = tasks.register('findGit', FindGitTask)
-            def updateSubmodules = tasks.register('updateSubmodules', UpdateSubmodulesTask) { dependsOn findGit }
-            tasks.register('applyPatches', ApplyPatchesTask/*, dependsOn: 'updateSubmodules' We don't want to update the submodule if we're targeting a specific commit */)
-            tasks.register('makePatches', MakePatchesTask) { dependsOn findGit }
 
-            tasks.withType(PatchTask).configureEach {
-                addAsSafeDirectory.set(extension.addAsSafeDirectory)
-                committerName.set(extension.committerNameOverride)
-                committerEmail.set(extension.committerEmailOverride)
-            }
-            findGit.configure { submodule.set(extension.submodule)}
-            updateSubmodules.configure {
-                repo.set(extension.root)
-                submodule.set(extension.submodule)
-            }
+            extension.patchedRepos.all { RepoPatchDetails r ->
+                r.addAsSafeDirectory.convention(extension.addAsSafeDirectory)
+                r.committerNameOverride.convention(extension.committerNameOverride)
+                r.committerEmailOverride.convention(extension.committerEmailOverride)
 
-            ['applyPatches', 'makePatches'].each { name ->
-                tasks.named(name, PatchTask) {
-                    repo.set(extension.target)
-                    root.set(extension.root)
-                    submodule.set(extension.submodule)
-                    patchDir.set(extension.patches)
+                def capitalizedName = r.name.capitalize()
+
+                def updateSubmodules = tasks.register('update' + capitalizedName + 'Submodules', UpdateSubmodulesTask) { dependsOn findGit }
+                rootUpdate.configure { dependsOn(updateSubmodules) }
+
+                def apply = tasks.register('apply' + capitalizedName  +'Patches', ApplyPatchesTask/*, dependsOn: 'updateSubmodules' We don't want to update the submodule if we're targeting a specific commit */)
+                rootApply.configure { dependsOn(apply) }
+
+                def rebuild = tasks.register('make' + capitalizedName + 'Patches', MakePatchesTask) { dependsOn findGit }
+                rootRebuild.configure { dependsOn(rebuild) }
+
+                // groovy moment?
+                List<TaskProvider<? extends PatchTask>> patchTasks = new ArrayList<>()
+                patchTasks.add(apply)
+                patchTasks.add(rebuild)
+
+                patchTasks.each { taskProvider ->
+                    taskProvider.configure {
+                        addAsSafeDirectory.convention(r.addAsSafeDirectory)
+                        committerName.convention(r.committerNameOverride)
+                        committerEmail.convention(r.committerEmailOverride)
+
+                        repo.set(r.target)
+                        root.set(r.root)
+                        submodule.set(r.submodule)
+                        patchDir.set(r.patches)
+                    }
                 }
-            }
 
-            afterEvaluate {
-                tasks.applyPatches.updateTask = tasks.updateSubmodules
+                updateSubmodules.configure {
+                    repo.convention(r.root)
+                    submodule.convention(r.submodule)
+                }
+
+                afterEvaluate {
+                    apply.configure { updateTask = updateSubmodules.get() }
+                }
             }
         }
     }
@@ -79,7 +102,7 @@ class GitPatcher implements Plugin<Project> {
     }
 
     @CompileStatic
-    PatchExtension getExtension() {
+    GitPatcherExtension getExtension() {
         return extension
     }
 

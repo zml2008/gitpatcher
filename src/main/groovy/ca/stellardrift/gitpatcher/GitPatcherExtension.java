@@ -22,65 +22,15 @@
  */
 package ca.stellardrift.gitpatcher;
 
-import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.provider.Property;
 
-public interface PatchExtension {
-    /**
-     * The root/project directory.
-     *
-     * <p>This usually does not need to be manually set.</p>
-     *
-     * @return the root
-     * @since 1.0.0
-     */
-    DirectoryProperty getRoot();
+public interface GitPatcherExtension {
+    NamedDomainObjectContainer<RepoPatchDetails> getPatchedRepos();
 
-    /**
-     * The name of the submodule directory created.
-     *
-     * @return the submodule
-     * @since 1.0.0
-     */
-    Property<String> getSubmodule();
-
-    /**
-     * The target folder for the patched repository.
-     *
-     * @return the target folder
-     * @since 1.0.0
-     */
-    DirectoryProperty getTarget();
-
-    /**
-     * The folder where the patches are saved
-     *
-     * @return the patch directory
-     * @since 1.0.0
-     */
-    DirectoryProperty getPatches();
-
-    /**
-     * Whether to add the patched repo to git's safe directories list.
-     *
-     * @return the add as safe directory property
-     * @since 1.0.0
-     */
     Property<Boolean> getAddAsSafeDirectory();
 
-    /**
-     * A temporary committer name to use for applied patches.
-     *
-     * @return the committer name property
-     * @since 1.0.0
-     */
     Property<String> getCommitterNameOverride();
 
-    /**
-     * A temporary committer name to use for applied patches.
-     *
-     * @return the committer name property
-     * @since 1.0.0
-     */
     Property<String> getCommitterEmailOverride();
 }
