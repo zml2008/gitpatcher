@@ -26,11 +26,42 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.provider.Property;
 
 public interface GitPatcherExtension {
+    /**
+     * Container holding the repos to patch.
+     *
+     * <p>Each {@link RepoPatchDetails} will
+     * have a {@code apply[CapitalizedName]Patches}, {@code make[CapitalizedName]Patches},
+     * and {@code update[CapitalizedName]Submodules} task.</p>
+     *
+     * <p>{@code applyPatches}, {@code rebuildPatches}, and {@code updateSubmodules}
+     * depend on the respective tasks of all registered repos.</p>
+     *
+     * @return repo container
+     * @since 2.0.0
+     */
     NamedDomainObjectContainer<RepoPatchDetails> getPatchedRepos();
 
+    /**
+     * Whether to add the patched repo to git's safe directories list.
+     *
+     * @return the add as safe directory property
+     * @since 2.0.0
+     */
     Property<Boolean> getAddAsSafeDirectory();
 
+    /**
+     * A temporary committer name to use for applied patches.
+     *
+     * @return the committer name property
+     * @since 2.0.0
+     */
     Property<String> getCommitterNameOverride();
 
+    /**
+     * A temporary committer name to use for applied patches.
+     *
+     * @return the committer name property
+     * @since 2.0.0
+     */
     Property<String> getCommitterEmailOverride();
 }

@@ -26,6 +26,11 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
 
 public interface RepoPatchDetails {
+    /**
+     * Get the name of this {@link RepoPatchDetails}.
+     *
+     * @return the name
+     */
     String getName();
 
     /**
