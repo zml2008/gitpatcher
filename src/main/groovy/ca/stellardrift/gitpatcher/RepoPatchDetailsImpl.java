@@ -22,63 +22,73 @@
  */
 package ca.stellardrift.gitpatcher;
 
-import javax.inject.Inject;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 
-@Deprecated
-abstract class PatchExtensionImpl implements PatchExtension {
-    private final GitPatcherExtension ext;
-    private volatile RepoPatchDetails details = null;
+import javax.inject.Inject;
+
+abstract class RepoPatchDetailsImpl implements RepoPatchDetails {
+    private final String name;
+    private final DirectoryProperty root;
+    private final Property<String> submodule;
+    private final DirectoryProperty target;
+    private final DirectoryProperty patches;
+    private final Property<Boolean> addAsSafeDirectory;
+    private final Property<String> committerNameOverride;
+
+    private final Property<String> committerEmailOverride;
 
     @Inject
-    public PatchExtensionImpl(final GitPatcherExtension ext) {
-        this.ext = ext;
+    public RepoPatchDetailsImpl(final String name, final ObjectFactory objects, final ProjectLayout layout) {
+        this.name = name;
+        this.root = objects.directoryProperty().convention(layout.getProjectDirectory());
+        this.submodule = objects.property(String.class);
+        this.target = objects.directoryProperty();
+        this.patches = objects.directoryProperty();
+        this.addAsSafeDirectory = objects.property(Boolean.class);
+        this.committerNameOverride = objects.property(String.class);
+        this.committerEmailOverride = objects.property(String.class);
     }
 
-    private RepoPatchDetails details() {
-        if (this.details == null) {
-            synchronized (this) {
-                if (this.details == null) {
-                    this.details = this.ext.getPatchedRepos().create("repo");
-                }
-            }
-        }
-        return this.details;
+    @Override
+    public String getName() {
+        return this.name;
     }
 
     @Override
     public DirectoryProperty getRoot() {
-        return this.details().getRoot();
+        return this.root;
     }
 
     @Override
     public Property<String> getSubmodule() {
-        return this.details().getSubmodule();
+        return this.submodule;
     }
 
     @Override
     public DirectoryProperty getTarget() {
-        return this.details().getTarget();
+        return this.target;
     }
 
     @Override
     public DirectoryProperty getPatches() {
-        return this.details().getPatches();
+        return this.patches;
     }
 
     @Override
     public Property<Boolean> getAddAsSafeDirectory() {
-        return this.details().getAddAsSafeDirectory();
+        return this.addAsSafeDirectory;
     }
 
     @Override
     public Property<String> getCommitterNameOverride() {
-        return this.details().getCommitterNameOverride();
+        return this.committerNameOverride;
     }
 
     @Override
     public Property<String> getCommitterEmailOverride() {
-        return this.details().getCommitterEmailOverride();
+        return this.committerEmailOverride;
     }
 }

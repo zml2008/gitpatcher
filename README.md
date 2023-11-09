@@ -9,29 +9,35 @@ the PATH is required for it to run.
 
   ```gradle
   plugins {
-      id 'ca.stellardrift.gitpatcher' version '1.0.0'
+      id 'ca.stellardrift.gitpatcher' version '1.1.0'
   }
   ```
 3. Configure gitpatcher:
 
   ```gradle
-  patches {
-      // The submodule path you just created
-      submodule = 'upstream'
-      // The target folder for the patched repositories
-      target = file('target')
-      // The folder where the patches are saved
-      patches = file('patches')
+  gitPatcher.patchedRepos {
+      // 'repo' is arbitrary; it will be used for task names (see below section)
+      'repo' {
+          // The submodule path you just created
+          submodule = 'upstream'
+          // The target folder for the patched repositories
+          target = file('target')
+          // The folder where the patches are saved
+          patches = file('patches')
+      }
   }
   ```
 4. That's it! Now you can initialize your repository (see below) and start making commits to it. Then just make the patches and you can apply it to the target repository as often as you want.
 
 # Tasks
-| Name               | Description                                                                      |
-|--------------------|----------------------------------------------------------------------------------|
-| `updateSubmodules` | Initializes the submodule and updates it if it is outdated.                      |
-| `applyPatches`     | Initializes the target repository and applies the patches from the patch folder. |
-| `makePatches`      | Creates or updates the patches in the patch folder.                              |
+| Name                                | Description                                                                          |
+|-------------------------------------|--------------------------------------------------------------------------------------|
+| `update[CapitalizedName]Submodules` | Initializes the submodule and updates it if it is outdated.                          |
+| `apply[CapitalizedName]Patches`     | Initializes the target repository and applies the patches from the patch folder.     |
+| `make[CapitalizedName]Patches`      | Creates or updates the patches in the patch folder.                                  |
+| `updateSubmodules`                  | Lifecycle task which depends on all other `update[CapitalizedName]Submodules` tasks. |
+| `applyPatches`                      | Lifecycle task which depends on all other `apply[CapitalizedName]Patches` tasks.     |
+| `makePatches`                       | Lifecycle task which depends on all other `make[CapitalizedName]Patches` tasks.      |
 
 [example]: https://github.com/LapisBlue/Pore/tree/master/patches
 

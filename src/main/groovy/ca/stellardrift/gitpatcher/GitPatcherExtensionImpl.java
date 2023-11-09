@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2023, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,62 +23,48 @@
 package ca.stellardrift.gitpatcher;
 
 import javax.inject.Inject;
-import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 
-@Deprecated
-abstract class PatchExtensionImpl implements PatchExtension {
-    private final GitPatcherExtension ext;
-    private volatile RepoPatchDetails details = null;
+class GitPatcherExtensionImpl implements GitPatcherExtension {
+    private final NamedDomainObjectContainer<RepoPatchDetailsImpl> patchedRepos;
+    private final Property<Boolean> addAsSafeDirectory;
+    private final Property<String> committerNameOverride;
+    private final Property<String> committerEmailOverride;
 
     @Inject
-    public PatchExtensionImpl(final GitPatcherExtension ext) {
-        this.ext = ext;
-    }
-
-    private RepoPatchDetails details() {
-        if (this.details == null) {
-            synchronized (this) {
-                if (this.details == null) {
-                    this.details = this.ext.getPatchedRepos().create("repo");
-                }
-            }
-        }
-        return this.details;
+    public GitPatcherExtensionImpl(final ObjectFactory objects, final ProviderFactory providers) {
+        this.patchedRepos = objects.domainObjectContainer(RepoPatchDetailsImpl.class);
+        this.addAsSafeDirectory = objects.property(Boolean.class)
+            .convention(
+                providers.environmentVariable("GITPATCHER_ADD_GIT_SAFEDIR")
+                    .map(it -> it.equals("true"))
+                    .orElse(false)
+            );
+        this.committerNameOverride = objects.property(String.class).convention("GitPatcher");
+        this.committerEmailOverride = objects.property(String.class).convention("gitpatcher@noreply");
     }
 
     @Override
-    public DirectoryProperty getRoot() {
-        return this.details().getRoot();
-    }
-
-    @Override
-    public Property<String> getSubmodule() {
-        return this.details().getSubmodule();
-    }
-
-    @Override
-    public DirectoryProperty getTarget() {
-        return this.details().getTarget();
-    }
-
-    @Override
-    public DirectoryProperty getPatches() {
-        return this.details().getPatches();
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public NamedDomainObjectContainer<RepoPatchDetails> getPatchedRepos() {
+        return (NamedDomainObjectContainer) this.patchedRepos;
     }
 
     @Override
     public Property<Boolean> getAddAsSafeDirectory() {
-        return this.details().getAddAsSafeDirectory();
+        return this.addAsSafeDirectory;
     }
 
     @Override
     public Property<String> getCommitterNameOverride() {
-        return this.details().getCommitterNameOverride();
+        return this.committerNameOverride;
     }
 
     @Override
     public Property<String> getCommitterEmailOverride() {
-        return this.details().getCommitterEmailOverride();
+        return this.committerEmailOverride;
     }
 }

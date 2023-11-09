@@ -73,6 +73,7 @@ abstract class ApplyPatchesTask extends PatchTask {
 
     @TaskAction
     void applyPatches() {
+        def repoFile = repo.get().asFile
         def git = new Git(submoduleRoot.get().asFile)
         def safeState = setupGit(git)
         try {
@@ -80,14 +81,14 @@ abstract class ApplyPatchesTask extends PatchTask {
 
             def gitDir = repo.get().dir('.git').asFile
             if (!gitDir.isDirectory() || gitDir.list().length == 0) {
-                logger.lifecycle 'Creating {} repository...', repo
+                logger.lifecycle 'Creating {} repository...', repoFile
 
                 assert gitDir.deleteDir()
                 git.repo = root
                 git.clone('--recursive', submodule.get(), repo.get().asFile.absolutePath, '-b', 'upstream') >> out
             }
 
-            logger.lifecycle 'Resetting {}...', repo
+            logger.lifecycle 'Resetting {}...', repoFile
 
             git.setRepo(repo)
             git.fetch('origin') >> null
@@ -105,12 +106,12 @@ abstract class ApplyPatchesTask extends PatchTask {
 
             def patches = this.patches
             if (patches.length > 0) {
-                logger.lifecycle 'Applying patches from {} to {}', patchDir.get().asFile, repo.get().asFile
+                logger.lifecycle 'Applying patches from {} to {}', patchDir.get().asFile, repoFile
 
                 git.am('--abort') >>> null
                 git.am('--3way', *patches.collect { it.absolutePath }) >> out
 
-                logger.lifecycle 'Successfully applied patches from {} to {}', patchDir.get().asFile, repo.get().asFile
+                logger.lifecycle 'Successfully applied patches from {} to {}', patchDir.get().asFile, repoFile
             }
 
             refCache.get().asFile.text = git.ref + '\n' + updateTask.ref
