@@ -9,7 +9,7 @@ the PATH is required for it to run.
 
   ```gradle
   plugins {
-      id 'ca.stellardrift.gitpatcher' version '2.0.0'
+      id 'ca.stellardrift.gitpatcher' version '1.1.0'
   }
   ```
 3. Configure gitpatcher:
