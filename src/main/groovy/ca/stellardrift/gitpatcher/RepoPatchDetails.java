@@ -39,7 +39,7 @@ public interface RepoPatchDetails {
      * <p>This usually does not need to be manually set.</p>
      *
      * @return the root
-     * @since 2.0.0
+     * @since 1.1.0
      */
     DirectoryProperty getRoot();
 
@@ -47,7 +47,7 @@ public interface RepoPatchDetails {
      * The name of the submodule directory created.
      *
      * @return the submodule
-     * @since 2.0.0
+     * @since 1.1.0
      */
     Property<String> getSubmodule();
 
@@ -55,7 +55,7 @@ public interface RepoPatchDetails {
      * The target folder for the patched repository.
      *
      * @return the target folder
-     * @since 2.0.0
+     * @since 1.1.0
      */
     DirectoryProperty getTarget();
 
@@ -63,7 +63,7 @@ public interface RepoPatchDetails {
      * The folder where the patches are saved
      *
      * @return the patch directory
-     * @since 2.0.0
+     * @since 1.1.0
      */
     DirectoryProperty getPatches();
 
@@ -71,7 +71,7 @@ public interface RepoPatchDetails {
      * Whether to add the patched repo to git's safe directories list.
      *
      * @return the add as safe directory property
-     * @since 2.0.0
+     * @since 1.1.0
      */
     Property<Boolean> getAddAsSafeDirectory();
 
@@ -79,7 +79,7 @@ public interface RepoPatchDetails {
      * A temporary committer name to use for applied patches.
      *
      * @return the committer name property
-     * @since 2.0.0
+     * @since 1.1.0
      */
     Property<String> getCommitterNameOverride();
 
@@ -87,7 +87,7 @@ public interface RepoPatchDetails {
      * A temporary committer name to use for applied patches.
      *
      * @return the committer name property
-     * @since 2.0.0
+     * @since 1.1.0
      */
     Property<String> getCommitterEmailOverride();
 }

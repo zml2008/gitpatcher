@@ -34,6 +34,8 @@ import org.gradle.api.tasks.TaskProvider
 
 class GitPatcher implements Plugin<Project> {
 
+    private static String GITPATCHER_TASK_GROUP = "gitpatcher"
+
     protected Project project
     protected GitPatcherExtension extension
 
@@ -41,14 +43,15 @@ class GitPatcher implements Plugin<Project> {
     void apply(Project project) {
         this.project = project
 
-        def rootApply = project.tasks.register("applyPatches")
-        def rootRebuild = project.tasks.register("makePatches")
-        def rootUpdate = project.tasks.register("updateSubmodules")
+        def rootApply = project.tasks.register("applyPatches") { group = GITPATCHER_TASK_GROUP }
+        def rootRebuild = project.tasks.register("makePatches") { group = GITPATCHER_TASK_GROUP }
+        def rootUpdate = project.tasks.register("updateSubmodules") { group = GITPATCHER_TASK_GROUP }
 
         project.with {
             this.extension = extensions.create(GitPatcherExtension, 'gitPatcher', GitPatcherExtensionImpl)
+            extensions.create(PatchExtension, 'patches', PatchExtensionImpl, extension)
 
-            def findGit = tasks.register('findGit', FindGitTask)
+            def findGit = tasks.register('findGit', FindGitTask) { group = GITPATCHER_TASK_GROUP }
 
             extension.patchedRepos.all { RepoPatchDetails r ->
                 r.addAsSafeDirectory.convention(extension.addAsSafeDirectory)
@@ -57,13 +60,22 @@ class GitPatcher implements Plugin<Project> {
 
                 def capitalizedName = r.name.capitalize()
 
-                def updateSubmodules = tasks.register('update' + capitalizedName + 'Submodules', UpdateSubmodulesTask) { dependsOn findGit }
+                def updateSubmodules = tasks.register('update' + capitalizedName + 'Submodules', UpdateSubmodulesTask) {
+                    group = GITPATCHER_TASK_GROUP
+                    dependsOn findGit
+                }
                 rootUpdate.configure { dependsOn(updateSubmodules) }
 
-                def apply = tasks.register('apply' + capitalizedName  +'Patches', ApplyPatchesTask/*, dependsOn: 'updateSubmodules' We don't want to update the submodule if we're targeting a specific commit */)
+                def apply = tasks.register('apply' + capitalizedName  +'Patches', ApplyPatchesTask) {
+                    group = GITPATCHER_TASK_GROUP
+                    /*, dependsOn: 'updateSubmodules' We don't want to update the submodule if we're targeting a specific commit */
+                }
                 rootApply.configure { dependsOn(apply) }
 
-                def rebuild = tasks.register('make' + capitalizedName + 'Patches', MakePatchesTask) { dependsOn findGit }
+                def rebuild = tasks.register('make' + capitalizedName + 'Patches', MakePatchesTask) {
+                    group = GITPATCHER_TASK_GROUP
+                    dependsOn findGit
+                }
                 rootRebuild.configure { dependsOn(rebuild) }
 
                 // groovy moment?
