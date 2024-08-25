@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Stellardrift and contributors
+ * Copyright (c) 2023-2024, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -34,7 +34,8 @@ import java.lang.annotation.Target;
 
 @GradleFunctionalTest
 @GradleParameters({"--warning-mode", "fail"})
-@TestVariant(gradleVersion = "8.2.1")
+@TestVariant(gradleVersion = "8.9", maximumRuntimeVersion = 16)
+@TestVariant(gradleVersion = "8.10", minimumRuntimeVersion = 17)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 public @interface GitPatcherFunctionalTest {

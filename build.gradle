@@ -27,7 +27,7 @@ tasks.withType(GroovyCompile).configureEach {
 indra {
     javaVersions {
         target 8
-        testWith 8, 11, 17, 20
+        testWith 11, 17, 21
     }
     github("zml2008", "gitpatcher")
     mitLicense()
