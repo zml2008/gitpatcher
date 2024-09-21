@@ -22,9 +22,13 @@
  */
 package ca.stellardrift.gitpatcher.task.patch
 
+import ca.stellardrift.gitpatcher.GitPatcherExtension
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
+import org.jetbrains.annotations.ApiStatus
+
+import javax.inject.Inject
 
 import static java.lang.System.out
 
@@ -39,6 +43,12 @@ import org.gradle.api.tasks.UntrackedTask
 
 @UntrackedTask(because = "State is tracked by git")
 abstract class ApplyPatchesTask extends PatchTask {
+    private GitPatcherExtension ext
+
+    @ApiStatus.Internal
+    void setExtension(GitPatcherExtension ext) {
+        this.ext = ext
+    }
 
     @Internal
     UpdateSubmodulesTask updateTask
@@ -109,7 +119,7 @@ abstract class ApplyPatchesTask extends PatchTask {
                 logger.lifecycle 'Applying patches from {} to {}', patchDir.get().asFile, repoFile
 
                 git.am('--abort') >>> null
-                git.am('--3way', *patches.collect { it.absolutePath }) >> out
+                git.am('--3way', *ext.AMExtraArguments.get(), *patches.collect { it.absolutePath }) >> out
 
                 logger.lifecycle 'Successfully applied patches from {} to {}', patchDir.get().asFile, repoFile
             }
