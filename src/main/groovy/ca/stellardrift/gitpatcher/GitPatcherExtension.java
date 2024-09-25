@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Stellardrift and contributors
+ * Copyright (c) 2023-2024, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,6 +23,7 @@
 package ca.stellardrift.gitpatcher;
 
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
 public interface GitPatcherExtension {
@@ -64,4 +65,12 @@ public interface GitPatcherExtension {
      * @since 1.1.0
      */
     Property<String> getCommitterEmailOverride();
+
+    /**
+     * The extra command line arguments which will be passed to Git am command
+     * when applying patches.
+     *
+     * @return the extra arguments which will be passed to Git am command
+     */
+    ListProperty<String> getApplyExtraArguments();
 }

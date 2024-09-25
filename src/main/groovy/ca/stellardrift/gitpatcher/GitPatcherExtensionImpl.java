@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Stellardrift and contributors
+ * Copyright (c) 2023-2024, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,14 +25,18 @@ package ca.stellardrift.gitpatcher;
 import javax.inject.Inject;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
+
+import java.util.Collections;
 
 class GitPatcherExtensionImpl implements GitPatcherExtension {
     private final NamedDomainObjectContainer<RepoPatchDetailsImpl> patchedRepos;
     private final Property<Boolean> addAsSafeDirectory;
     private final Property<String> committerNameOverride;
     private final Property<String> committerEmailOverride;
+    private final ListProperty<String> applyExtraArguments;
 
     @Inject
     public GitPatcherExtensionImpl(final ObjectFactory objects, final ProviderFactory providers) {
@@ -45,6 +49,7 @@ class GitPatcherExtensionImpl implements GitPatcherExtension {
             );
         this.committerNameOverride = objects.property(String.class).convention("GitPatcher");
         this.committerEmailOverride = objects.property(String.class).convention("gitpatcher@noreply");
+        this.applyExtraArguments = objects.listProperty(String.class);
     }
 
     @Override
@@ -66,5 +71,10 @@ class GitPatcherExtensionImpl implements GitPatcherExtension {
     @Override
     public Property<String> getCommitterEmailOverride() {
         return this.committerEmailOverride;
+    }
+
+    @Override
+    public ListProperty<String> getApplyExtraArguments() {
+        return this.applyExtraArguments;
     }
 }
