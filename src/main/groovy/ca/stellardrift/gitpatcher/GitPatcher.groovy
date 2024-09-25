@@ -67,7 +67,10 @@ class GitPatcher implements Plugin<Project> {
                 rootUpdate.configure { dependsOn(updateSubmodules) }
 
                 def apply = tasks.register('apply' + capitalizedName  +'Patches', ApplyPatchesTask) {
-                    setExtension(this.extension)
+                    def finalArg = new ArrayList<String>()
+                    finalArg.addAll(this.extension.applyExtraArguments.get())
+                    finalArg.addAll(getApplyExtraArguments())
+                    setApplyExtraArguments(finalArg)
                     group = GITPATCHER_TASK_GROUP
                     /*, dependsOn: 'updateSubmodules' We don't want to update the submodule if we're targeting a specific commit */
                 }
