@@ -22,33 +22,20 @@
  */
 package ca.stellardrift.gitpatcher.task.patch
 
-import ca.stellardrift.gitpatcher.GitPatcherExtension
+import ca.stellardrift.gitpatcher.Git
+import ca.stellardrift.gitpatcher.task.UpdateSubmodulesTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
-import org.jetbrains.annotations.ApiStatus
-
-import javax.inject.Inject
+import org.gradle.api.tasks.*
+import org.gradle.api.tasks.options.Option
 
 import static java.lang.System.out
 
-import ca.stellardrift.gitpatcher.Git
-import ca.stellardrift.gitpatcher.task.UpdateSubmodulesTask
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.UntrackedTask
-
 @UntrackedTask(because = "State is tracked by git")
 abstract class ApplyPatchesTask extends PatchTask {
-    private GitPatcherExtension ext
-
-    @ApiStatus.Internal
-    void setExtension(GitPatcherExtension ext) {
-        this.ext = ext
-    }
+    @Option
+    List<String> applyExtraArguments
 
     @Internal
     UpdateSubmodulesTask updateTask
@@ -119,7 +106,7 @@ abstract class ApplyPatchesTask extends PatchTask {
                 logger.lifecycle 'Applying patches from {} to {}', patchDir.get().asFile, repoFile
 
                 git.am('--abort') >>> null
-                git.am('--3way', *ext.AMExtraArguments.get(), *patches.collect { it.absolutePath }) >> out
+                git.am('--3way', *applyExtraArguments, *patches.collect { it.absolutePath }) >> out
 
                 logger.lifecycle 'Successfully applied patches from {} to {}', patchDir.get().asFile, repoFile
             }

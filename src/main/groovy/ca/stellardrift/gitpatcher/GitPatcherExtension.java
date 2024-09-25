@@ -72,5 +72,5 @@ public interface GitPatcherExtension {
      *
      * @return the extra arguments which will be passed to Git am command
      */
-    ListProperty<String> getAMExtraArguments();
+    ListProperty<String> getApplyExtraArguments();
 }

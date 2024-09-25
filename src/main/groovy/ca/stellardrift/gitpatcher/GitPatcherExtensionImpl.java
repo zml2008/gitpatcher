@@ -36,7 +36,7 @@ class GitPatcherExtensionImpl implements GitPatcherExtension {
     private final Property<Boolean> addAsSafeDirectory;
     private final Property<String> committerNameOverride;
     private final Property<String> committerEmailOverride;
-    private final ListProperty<String> amExtraArguments;
+    private final ListProperty<String> applyExtraArguments;
 
     @Inject
     public GitPatcherExtensionImpl(final ObjectFactory objects, final ProviderFactory providers) {
@@ -49,7 +49,7 @@ class GitPatcherExtensionImpl implements GitPatcherExtension {
             );
         this.committerNameOverride = objects.property(String.class).convention("GitPatcher");
         this.committerEmailOverride = objects.property(String.class).convention("gitpatcher@noreply");
-        this.amExtraArguments = objects.listProperty(String.class).convention(Collections.emptyList());
+        this.applyExtraArguments = objects.listProperty(String.class);
     }
 
     @Override
@@ -74,7 +74,7 @@ class GitPatcherExtensionImpl implements GitPatcherExtension {
     }
 
     @Override
-    public ListProperty<String> getAMExtraArguments() {
-        return this.amExtraArguments;
+    public ListProperty<String> getApplyExtraArguments() {
+        return this.applyExtraArguments;
     }
 }
