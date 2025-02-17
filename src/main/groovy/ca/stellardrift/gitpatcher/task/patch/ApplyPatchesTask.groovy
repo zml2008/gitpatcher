@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2015-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -91,6 +91,8 @@ abstract class ApplyPatchesTask extends PatchTask {
             logger.lifecycle 'Resetting {}...', repoFile
 
             git.setRepo(repo)
+            // reset origin url to handle cases where the project has been moved
+            git.remote('set-url', 'origin', submoduleRoot.get().asFile.absolutePath) >> null
             git.fetch('origin') >> null
             git.checkout('-B', 'master', 'origin/upstream') >> null
             git.reset('--hard') >> out
