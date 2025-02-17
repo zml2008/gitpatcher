@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2015-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,6 +22,7 @@
  */
 package ca.stellardrift.gitpatcher.task.patch
 
+import groovy.io.FileType
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -83,8 +84,23 @@ abstract class ApplyPatchesTask extends PatchTask {
             if (!gitDir.isDirectory() || gitDir.list().length == 0) {
                 logger.lifecycle 'Creating {} repository...', repoFile
 
+                def rootDir = repo.get().asFile
                 assert gitDir.deleteDir()
+
+                // remove any .gitkeep files within the tree and the directories that are within them
                 git.repo = root
+                if (new File(rootDir, '.gitkeep').delete()) {
+                    git."update-index"('--assume-unchanged', new File(rootDir, '.gitkeep').absolutePath)
+                }
+
+                rootDir.traverse type: FileType.DIRECTORIES, postDir: {
+                    def keep = new File(it, '.gitkeep')
+                    if (keep.delete()) {
+                        git."update-index"('--assume-unchanged', keep.absolutePath)
+                    }
+                    assert it.delete() // directory should be empty
+                }
+
                 git.clone('--recursive', submodule.get(), repo.get().asFile.absolutePath, '-b', 'upstream') >> out
             }
 

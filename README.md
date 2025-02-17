@@ -27,6 +27,8 @@ the PATH is required for it to run.
       }
   }
   ```
+2. Add the `target` directory to your `.gitignore`
+3. For any gradle projects within the patched directory, create an empty directory for the project directory, with nothing but a `.gitkeep` to tell Git to keep the directory on checkouts (hint: `git add -f target/.gitkeep` will bypass your `.gitignore` to track this file)
 4. That's it! Now you can initialize your repository (see below) and start making commits to it. Then just make the patches and you can apply it to the target repository as often as you want.
 
 # Tasks
