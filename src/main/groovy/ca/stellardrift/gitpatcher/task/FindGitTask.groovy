@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2015-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,13 +24,24 @@ package ca.stellardrift.gitpatcher.task
 
 import ca.stellardrift.gitpatcher.Git
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.TaskAction
+
+import javax.inject.Inject
 
 abstract class FindGitTask extends DefaultTask {
 
+    @Inject
+    protected abstract DirectoryProperty getRootDir();
+
+    FindGitTask() {
+        this.rootDir.set(project.rootDir) // todo: pull this from ProjectLayout in 8.13+
+    }
+
     @TaskAction
     void findGit() {
-        def git = new Git(project.rootDir)
+        def git = new Git(rootDir.get().asFile)
         try {
             def version = git.version().text.readLines().join(', ')
             logger.lifecycle("Using $version for patching submodules.")
