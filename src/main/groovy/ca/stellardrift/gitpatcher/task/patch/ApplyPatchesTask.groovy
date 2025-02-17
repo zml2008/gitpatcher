@@ -22,6 +22,7 @@
  */
 package ca.stellardrift.gitpatcher.task.patch
 
+import groovy.io.FileType
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -83,7 +84,17 @@ abstract class ApplyPatchesTask extends PatchTask {
             if (!gitDir.isDirectory() || gitDir.list().length == 0) {
                 logger.lifecycle 'Creating {} repository...', repoFile
 
+                def rootDir = repo.get().asFile
                 assert gitDir.deleteDir()
+
+                // remove any .gitkeep files within the tree and the directories that are within them
+                new File(rootDir, '.gitkeep').delete()
+                rootDir.traverse type: FileType.DIRECTORIES, postDir: {
+                    def keep = new File(it, '.gitkeep')
+                    keep.delete()
+                    assert it.delete() // directory should be empty
+                }
+
                 git.repo = root
                 git.clone('--recursive', submodule.get(), repo.get().asFile.absolutePath, '-b', 'upstream') >> out
             }
