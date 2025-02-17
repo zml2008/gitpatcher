@@ -107,6 +107,8 @@ abstract class ApplyPatchesTask extends PatchTask {
             logger.lifecycle 'Resetting {}...', repoFile
 
             git.setRepo(repo)
+            // reset origin url to handle cases where the project has been moved
+            git.remote('set-url', 'origin', submoduleRoot.get().asFile.absolutePath) >> null
             git.fetch('origin') >> null
             git.checkout('-B', 'master', 'origin/upstream') >> null
             git.reset('--hard') >> out
