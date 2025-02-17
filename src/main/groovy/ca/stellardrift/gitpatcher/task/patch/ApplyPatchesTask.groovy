@@ -88,14 +88,19 @@ abstract class ApplyPatchesTask extends PatchTask {
                 assert gitDir.deleteDir()
 
                 // remove any .gitkeep files within the tree and the directories that are within them
-                new File(rootDir, '.gitkeep').delete()
+                git.repo = root
+                if (new File(rootDir, '.gitkeep').delete()) {
+                    git."update-index"('--assume-unchanged', new File(rootDir, '.gitkeep').absolutePath)
+                }
+
                 rootDir.traverse type: FileType.DIRECTORIES, postDir: {
                     def keep = new File(it, '.gitkeep')
-                    keep.delete()
+                    if (keep.delete()) {
+                        git."update-index"('--assume-unchanged', keep.absolutePath)
+                    }
                     assert it.delete() // directory should be empty
                 }
 
-                git.repo = root
                 git.clone('--recursive', submodule.get(), repo.get().asFile.absolutePath, '-b', 'upstream') >> out
             }
 
