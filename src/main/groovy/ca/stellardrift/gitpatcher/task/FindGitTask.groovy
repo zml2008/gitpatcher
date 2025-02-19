@@ -25,14 +25,12 @@ package ca.stellardrift.gitpatcher.task
 import ca.stellardrift.gitpatcher.Git
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.ProjectLayout
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
-
-import javax.inject.Inject
 
 abstract class FindGitTask extends DefaultTask {
 
-    @Inject
+    @Input
     protected abstract DirectoryProperty getRootDir();
 
     FindGitTask() {
