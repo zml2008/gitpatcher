@@ -2,13 +2,13 @@ pluginManagement {
     repositories {
         maven {
           name = "stellardriftReleases"
-          url = "https://repo.stellardrift.ca/repository/internal/"
+          url = "https://repo.stellardrift.ca/maven/internal/"
           mavenContent { releasesOnly() }
         }
         maven {
             name = "stellardriftSnapshots"
-            url = "https://repo.stellardrift.ca/repository/internal/"
-            mavenContent { releasesOnly() }
+            url = "https://repo.stellardrift.ca/maven/snapshots/"
+            mavenContent { snapshotsOnly() }
         }
     }
 }

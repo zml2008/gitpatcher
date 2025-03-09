@@ -32,8 +32,8 @@ indra {
     github("zml2008", "gitpatcher")
     mitLicense()
 
-    publishSnapshotsTo("stellardrift", "https://repo.stellardrift.ca/repository/snapshots/")
-    publishReleasesTo("stellardrift", "https://repo.stellardrift.ca/repository/releases/")
+    publishSnapshotsTo("stellardrift", "https://repo.stellardrift.ca/maven/snapshots/")
+    publishReleasesTo("stellardrift", "https://repo.stellardrift.ca/maven/releases/")
     configurePublications {
         pom {
             url = 'https://gitpatcher.stellardrift.ca'
