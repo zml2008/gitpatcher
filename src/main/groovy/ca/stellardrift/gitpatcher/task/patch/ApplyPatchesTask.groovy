@@ -37,6 +37,7 @@ import static java.lang.System.out
 @UntrackedTask(because = "State is tracked by git")
 abstract class ApplyPatchesTask extends PatchTask {
     @Option
+    @Internal
     List<String> applyExtraArguments
 
     @Internal
