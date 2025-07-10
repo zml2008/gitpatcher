@@ -25,12 +25,14 @@ package ca.stellardrift.gitpatcher.task
 import ca.stellardrift.gitpatcher.Git
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.UntrackedTask
 
+@UntrackedTask(because = "Always check for Git in the environment when requested")
 abstract class FindGitTask extends DefaultTask {
 
-    @Input
+    @Internal
     protected abstract DirectoryProperty getRootDir();
 
     FindGitTask() {
