@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2015-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,17 +20,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher.task
+package ca.stellardrift.gitpatcher.task;
 
-import groovy.transform.CompileStatic
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.UntrackedTask
+import ca.stellardrift.gitpatcher.Git;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.TaskAction;
 
-@UntrackedTask(because = "State is tracked by git")
-@CompileStatic
-abstract class GitTask extends DefaultTask {
+public abstract class UpdateSubmodulesTask extends SubmoduleTask {
+    private String ref;
+
     @Internal
-    abstract DirectoryProperty getRepo()
+    public String getRef() {
+        return this.ref;
+    }
+
+    @Override
+    @InputDirectory
+    public abstract DirectoryProperty getRepo();
+
+    @TaskAction
+    public void updateSubmodules() {
+        final Git git = new Git(this.getRepo());
+        final String result = git.submodule("status", "--", this.getSubmodule().get()).getText();
+
+        this.ref = result.substring(1, result.indexOf(' ', 1) - 1);
+
+        if (result.startsWith(" ")) {
+            this.setDidWork(false);
+            return;
+        }
+
+        git.submodule("update", "--init", "--recursive").writeTo(System.out);
+    }
 }

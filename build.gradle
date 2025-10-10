@@ -13,6 +13,7 @@ group = 'ca.stellardrift'
 description = 'A Gradle plugin to manage patches for Git repositories'
 
 dependencies {
+    compileOnlyApi libs.jspecify
     testImplementation platform(libs.junit.bom)
     testImplementation libs.mammoth.test
     testImplementation libs.junit.jupiter.api
@@ -26,8 +27,8 @@ tasks.withType(GroovyCompile).configureEach {
 
 indra {
     javaVersions {
-        target 8
-        testWith 11, 17, 21
+        target 17
+        testWith 17, 21, 25
     }
     github("zml2008", "gitpatcher")
     mitLicense()

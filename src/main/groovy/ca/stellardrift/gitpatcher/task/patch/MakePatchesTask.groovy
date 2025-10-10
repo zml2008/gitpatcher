@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2015-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,13 +22,13 @@
  */
 package ca.stellardrift.gitpatcher.task.patch
 
+import ca.stellardrift.gitpatcher.Git
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 
 import static java.lang.System.out
 
-import ca.stellardrift.gitpatcher.Git
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
@@ -75,24 +75,24 @@ abstract class MakePatchesTask extends PatchTask {
                 assert patches*.delete(), 'Failed to delete old patch'
             }
         } else {
-            assert patchDir.mkdirs(), 'Failed to create patch directory'
+            assert patchDir.get().asFile.mkdirs(), 'Failed to create patch directory'
         }
 
         def git = new Git(repo)
         def safeState = setupGit(git)
         try {
-            git.format_patch('--no-stat', '--zero-commit', '--full-index', '--no-signature', '-N', '-o', patchDir.get().asFile.absolutePath, 'origin/upstream') >> null
+            git.formatPatch('--no-stat', '--zero-commit', '--full-index', '--no-signature', '-N', '-o', patchDir.get().asFile.absolutePath, 'origin/upstream').expectSuccessSilently();
 
             git.repo = root
-            git.add('-A', patchDir.get().asFile.absolutePath) >> out
+            git.add('-A', patchDir.get().asFile.absolutePath).writeTo(out)
 
             didWork = false
             for (def patch : patches) {
-                List<String> diff = git.diff('--no-color', '-U1', '--staged', patch.absolutePath).text.readLines()
+                List<String> diff = git.diff('--no-color', '-U1', '--staged', patch.absolutePath).lines
                 if (isUpToDate(diff)) {
                     logger.lifecycle 'Skipping {} (up-to-date)', patch.name
-                    git.reset('HEAD', patch.absolutePath) >> null
-                    git.checkout('--', patch.absolutePath) >> null
+                    git.reset('HEAD', patch.absolutePath).expectSuccessSilently()
+                    git.checkout('--', patch.absolutePath).expectSuccessSilently()
                 } else {
                     didWork = true
                     logger.lifecycle 'Generating {}', patch.name

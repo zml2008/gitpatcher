@@ -22,6 +22,7 @@
  */
 package ca.stellardrift.gitpatcher.task.patch
 
+import ca.stellardrift.gitpatcher.Git
 import groovy.io.FileType
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
@@ -29,7 +30,6 @@ import org.gradle.api.provider.Provider
 
 import static java.lang.System.out
 
-import ca.stellardrift.gitpatcher.Git
 import ca.stellardrift.gitpatcher.task.UpdateSubmodulesTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -67,7 +67,7 @@ abstract class ApplyPatchesTask extends PatchTask {
                 return false
             }
 
-            def git = new Git(repo)
+            def git = new Git(repo.get())
             return git.status.empty && cachedRef == git.ref && cachedSubmoduleRef == updateTask.ref
         }
     }
@@ -75,7 +75,7 @@ abstract class ApplyPatchesTask extends PatchTask {
     @TaskAction
     void applyPatches() {
         def repoFile = repo.get().asFile
-        def git = new Git(submoduleRoot.get().asFile)
+        def git = new Git(submoduleRoot)
         def safeState = setupGit(git)
         try {
             git.branch('-f', 'upstream') >> null
@@ -90,44 +90,44 @@ abstract class ApplyPatchesTask extends PatchTask {
                 // remove any .gitkeep files within the tree and the directories that are within them
                 git.repo = root
                 if (new File(rootDir, '.gitkeep').delete()) {
-                    git."update-index"('--assume-unchanged', new File(rootDir, '.gitkeep').absolutePath)
+                    git.updateIndex('--assume-unchanged', new File(rootDir, '.gitkeep').absolutePath).awaitCompletion()
                 }
 
                 rootDir.traverse type: FileType.DIRECTORIES, postDir: {
                     def keep = new File(it, '.gitkeep')
                     if (keep.delete()) {
-                        git."update-index"('--assume-unchanged', keep.absolutePath)
+                        git.deleteIndex('--assume-unchanged', keep.absolutePath).awaitCompletion()
                     }
                     assert it.delete() // directory should be empty
                 }
 
-                git.clone('--recursive', submodule.get(), repo.get().asFile.absolutePath, '-b', 'upstream') >> out
+                git.clone('--recursive', submodule.get(), repo.get().asFile.absolutePath, '-b', 'upstream').writeTo(out)
             }
 
             logger.lifecycle 'Resetting {}...', repoFile
 
             git.setRepo(repo)
             // reset origin url to handle cases where the project has been moved
-            git.remote('set-url', 'origin', submoduleRoot.get().asFile.absolutePath) >> null
-            git.fetch('origin') >> null
-            git.checkout('-B', 'master', 'origin/upstream') >> null
-            git.reset('--hard') >> out
+            git.remote('set-url', 'origin', submoduleRoot.get().asFile.absolutePath).expectSuccessSilently()
+            git.fetch('origin').expectSuccessSilently()
+            git.checkout('-B', 'master', 'origin/upstream').expectSuccessSilently()
+            git.reset('--hard').writeTo(out)
 
             if (!patchDir.get().asFile.directory) {
                 assert patchDir.get().asFile.mkdirs(), 'Failed to create patch directory'
             }
 
-            if ('true'.equalsIgnoreCase(git.config('commit.gpgsign').readText())) {
+            if ('true'.equalsIgnoreCase(git.config('commit.gpgsign').forceGetText())) {
                 logger.warn("Disabling GPG signing for the gitpatcher repository")
-                git.config('commit.gpgsign', 'false') >> out
+                git.config('commit.gpgsign', 'false').writeTo(out)
             }
 
             def patches = this.patches
             if (patches.length > 0) {
                 logger.lifecycle 'Applying patches from {} to {}', patchDir.get().asFile, repoFile
 
-                git.am('--abort') >>> null
-                git.am('--3way', *patches.collect { it.absolutePath }) >> out
+                git.am('--abort').awaitCompletionSilently()
+                git.am('--3way', *patches.collect { it.absolutePath }).writeTo(out)
 
                 logger.lifecycle 'Successfully applied patches from {} to {}', patchDir.get().asFile, repoFile
             }

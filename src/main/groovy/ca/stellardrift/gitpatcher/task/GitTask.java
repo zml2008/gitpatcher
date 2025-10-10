@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2015-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,21 +20,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher.task
+package ca.stellardrift.gitpatcher.task;
 
-import groovy.transform.CompileStatic
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
+import org.gradle.api.DefaultTask;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.UntrackedTask;
 
-@CompileStatic
-abstract class SubmoduleTask extends GitTask {
-
-    @Input
-    @Optional
-    abstract Property<String> getSubmodule();
-
-    {
-        onlyIf { submodule.isPresent() }
-    }
+@UntrackedTask(because = "State is tracked by git")
+public abstract class GitTask extends DefaultTask {
+    @Internal
+    public abstract DirectoryProperty getRepo();
 }
