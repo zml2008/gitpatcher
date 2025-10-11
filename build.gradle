@@ -4,12 +4,17 @@ plugins {
     alias libs.plugins.indra
     alias libs.plugins.indra.gradlePluginPublish
     alias libs.plugins.indra.licenserSpotless
+    alias libs.plugins.sigstore apply false
     alias libs.plugins.spotless
     alias libs.plugins.pluginPublishPlugin
 }
 
 group = 'ca.stellardrift'
 description = 'A Gradle plugin to manage patches for Git repositories'
+
+if ("true" == System.getenv("GITHUB_ACTIONS")) {
+    apply plugin: 'dev.sigstore.sign'
+}
 
 dependencies {
     compileOnlyApi libs.jspecify

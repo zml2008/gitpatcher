@@ -12,6 +12,7 @@ jobs:
     permissions:
         actions: write
         contents: write
+        id-token: write
     secrets:
       STELLARDRIFT_USERNAME: ${{ secrets.STELLARDRIFT_USERNAME }}
       STELLARDRIFT_PASSWORD: ${{ secrets.STELLARDRIFT_PASSWORD }}
