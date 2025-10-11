@@ -31,15 +31,14 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
-
-import static java.lang.System.out;
-
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.jspecify.annotations.Nullable;
+
+import static java.lang.System.out;
 
 @UntrackedTask(because = "State is tracked by git")
 public abstract class MakePatchesTask extends PatchTask {

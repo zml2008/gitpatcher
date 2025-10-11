@@ -24,6 +24,7 @@ package ca.stellardrift.gitpatcher.task.patch;
 
 import ca.stellardrift.gitpatcher.internal.Git;
 import ca.stellardrift.gitpatcher.internal.Utils;
+import ca.stellardrift.gitpatcher.task.UpdateSubmodulesTask;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -38,10 +39,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
-
-import static java.lang.System.out;
-
-import ca.stellardrift.gitpatcher.task.UpdateSubmodulesTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
@@ -49,6 +46,8 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.jetbrains.annotations.Nullable;
+
+import static java.lang.System.out;
 
 @UntrackedTask(because = "State is tracked by git")
 public abstract class ApplyPatchesTask extends PatchTask {

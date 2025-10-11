@@ -25,7 +25,6 @@ package ca.stellardrift.gitpatcher;
 import javax.inject.Inject;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
-import org.jspecify.annotations.NullUnmarked;
 
 @Deprecated
 abstract class PatchExtensionImpl implements PatchExtension {

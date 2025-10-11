@@ -60,6 +60,20 @@ indraSpotlessLicenser {
 
 spotless {
     ratchetFrom 'origin/trunk'
+    java {
+        trimTrailingWhitespace()
+        leadingTabsToSpaces(4)
+        removeUnusedImports()
+        endWithNewline()
+        importOrderFile(rootProject.file(".spotless/stellardrift.importorder"))
+    }
+
+    groovyGradle {
+        trimTrailingWhitespace()
+        leadingTabsToSpaces(4)
+        endWithNewline()
+        importOrderFile(rootProject.file(".spotless/stellardrift.importorder"))
+    }
 }
 
 tasks.named('jar', Jar) {

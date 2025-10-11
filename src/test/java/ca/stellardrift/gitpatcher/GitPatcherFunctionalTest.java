@@ -22,15 +22,14 @@
  */
 package ca.stellardrift.gitpatcher;
 
-import net.kyori.mammoth.test.GradleFunctionalTest;
-import net.kyori.mammoth.test.GradleParameters;
-import net.kyori.mammoth.test.TestVariant;
-import net.kyori.mammoth.test.TestVariantResource;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import net.kyori.mammoth.test.GradleFunctionalTest;
+import net.kyori.mammoth.test.GradleParameters;
+import net.kyori.mammoth.test.TestVariant;
+import net.kyori.mammoth.test.TestVariantResource;
 
 @GradleFunctionalTest
 @GradleParameters({"--warning-mode", "fail", "--stacktrace"})

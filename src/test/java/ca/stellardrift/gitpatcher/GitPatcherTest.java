@@ -25,6 +25,7 @@ package ca.stellardrift.gitpatcher;
 import ca.stellardrift.gitpatcher.internal.DefaultGitFactory;
 import ca.stellardrift.gitpatcher.internal.Git;
 import ca.stellardrift.gitpatcher.internal.GitFactory;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,8 +33,6 @@ import java.nio.file.Path;
 import net.kyori.mammoth.test.TestContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
-
-import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;

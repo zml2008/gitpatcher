@@ -28,19 +28,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -52,24 +51,28 @@ public final class Git {
     private static final Logger LOGGER = Logging.getLogger(Git.class);
 
     private final ExecutorService ioExecutor;
-    private File repo;
+    private Path repo;
     private @Nullable String committerNameOverride;
     private @Nullable String committerEmailOverride;
     private @Nullable String authorNameOverride;
     private @Nullable String authorEmailOverride;
 
     public Git(final Path path, final ExecutorService ioExecutor) {
-        this.repo = path.toFile();
+        this.repo = path;
         this.ioExecutor = ioExecutor;
     }
 
     // scaffolding //
 
-    public void setRepo(final File repo) {
+    public void setRepo(final Path repo) {
         this.repo = repo;
-        if (!repo.exists()) {
+        if (Files.notExists(repo)) {
             throw new GradleException("Repo directory " + repo + " does not exist!");
         }
+    }
+
+    public void setRepo(final File repo) {
+        this.setRepo(repo.toPath());
     }
 
     public void setRepo(final Directory repo) {
@@ -195,7 +198,7 @@ public final class Git {
         LOGGER.info("gitpatcher: executing {}", args);
         final ProcessBuilder builder = new ProcessBuilder(args);
         this.decorateEnv(builder.environment());
-        builder.directory(this.repo);
+        builder.directory(this.repo.toFile());
         try {
             return new Command(builder.start(), args, this.ioExecutor);
         } catch (final IOException ex) {
