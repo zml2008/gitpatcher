@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2025, Stellardrift and contributors
+ * Copyright (c) 2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,22 +20,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher.task;
+package ca.stellardrift.gitpatcher.internal;
 
-import ca.stellardrift.gitpatcher.internal.GitService;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.services.ServiceReference;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.api.services.BuildService;
+import org.gradle.api.services.BuildServiceParameters;
 
-@UntrackedTask(because = "State is tracked by git")
-public abstract class GitTask extends DefaultTask {
-    @Internal
-    public abstract DirectoryProperty getRepo();
+/**
+ * Build service for managing git instance lifecycles.
+ */
+public abstract class GitService implements AutoCloseable, BuildService<BuildServiceParameters.None> {
+    public static final String SERVICE_NAME = "ca.stellardrift.gitpatcher.git";
 
-    @ServiceReference(GitService.SERVICE_NAME)
-    protected abstract Property<GitService> getGitService();
+    private transient final GitFactory gitFactory;
+
+    public GitService() {
+        this.gitFactory = new DefaultGitFactory();
+    }
+
+    public GitFactory git() {
+        return this.gitFactory;
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.gitFactory.close();
+    }
 }

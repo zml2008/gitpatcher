@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher;
+package ca.stellardrift.gitpatcher.internal;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;

@@ -22,7 +22,7 @@
  */
 package ca.stellardrift.gitpatcher.task.patch;
 
-import ca.stellardrift.gitpatcher.Git;
+import ca.stellardrift.gitpatcher.internal.Git;
 import ca.stellardrift.gitpatcher.task.SubmoduleTask;
 import java.io.File;
 import java.io.IOException;

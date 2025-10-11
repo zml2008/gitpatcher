@@ -22,6 +22,8 @@
  */
 package ca.stellardrift.gitpatcher;
 
+import ca.stellardrift.gitpatcher.internal.GitService;
+import ca.stellardrift.gitpatcher.internal.Utils;
 import ca.stellardrift.gitpatcher.task.FindGitTask;
 import ca.stellardrift.gitpatcher.task.UpdateSubmodulesTask;
 import ca.stellardrift.gitpatcher.task.patch.ApplyPatchesTask;
@@ -31,6 +33,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 
 public abstract class GitPatcher implements Plugin<Project> {
@@ -42,6 +45,8 @@ public abstract class GitPatcher implements Plugin<Project> {
 
     @Override
     public void apply(final Project p) {
+        this.registerBuildService(p);
+
         final TaskProvider<Task> rootApply = p.getTasks().register("applyPatches", GitPatcher::applyGitPatcherGroup);
         final TaskProvider<Task> rootRebuild = p.getTasks().register("makePatches", GitPatcher::applyGitPatcherGroup);
         final TaskProvider<Task> rootUpdate = p.getTasks().register("updateSubmodules", GitPatcher::applyGitPatcherGroup);
@@ -92,6 +97,10 @@ public abstract class GitPatcher implements Plugin<Project> {
 
             p.afterEvaluate(p2 -> apply.configure(it -> it.setUpdateTask(updateSubmodules.get())));
         });
+    }
+
+    private Provider<GitService> registerBuildService(final Project project) {
+        return project.getGradle().getSharedServices().registerIfAbsent(GitService.SERVICE_NAME, GitService.class);
     }
 
     @SuppressWarnings("deprecation")

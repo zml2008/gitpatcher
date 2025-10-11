@@ -22,11 +22,15 @@
  */
 package ca.stellardrift.gitpatcher;
 
+import ca.stellardrift.gitpatcher.internal.DefaultGitFactory;
+import ca.stellardrift.gitpatcher.internal.Git;
+import ca.stellardrift.gitpatcher.internal.GitFactory;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import net.kyori.mammoth.test.TestContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 
 import java.io.IOException;
@@ -35,6 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class GitPatcherTest {
+    private final GitFactory git = new DefaultGitFactory();
+
+    @AfterEach
+    void cleanUp() throws Exception {
+        this.git.close();
+    }
+
     @GitPatcherFunctionalTest
     @DisplayName("pluginSimplyApplies")
     void testPluginSimplyApplies(final TestContext ctx) throws IOException {
@@ -50,7 +61,7 @@ public class GitPatcherTest {
         // init project
         ctx.copyInput("build.gradle");
         ctx.copyInput("settings.gradle");
-        new Git(ctx.outputDirectory()).run("init").expectSuccess();
+        this.git.create(ctx.outputDirectory()).run("init").expectSuccess();
 
         final Path upstream = ctx.outputDirectory().resolve("upstream");
         final Git git = createTestingGit(upstream);
@@ -81,7 +92,7 @@ public class GitPatcherTest {
 
     Git createTestingGit(final Path repo) throws IOException {
         Files.createDirectories(repo);
-        final Git ret = new Git(repo.toFile());
+        final Git ret = this.git.create(repo);
 
         ret.setCommitterNameOverride("gitpatcher");
         ret.setCommitterEmailOverride("gitpatcher@localhost");

@@ -22,7 +22,7 @@
  */
 package ca.stellardrift.gitpatcher.task;
 
-import ca.stellardrift.gitpatcher.Git;
+import ca.stellardrift.gitpatcher.internal.Git;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Internal;
@@ -42,7 +42,7 @@ public abstract class UpdateSubmodulesTask extends SubmoduleTask {
 
     @TaskAction
     public void updateSubmodules() {
-        final Git git = new Git(this.getRepo());
+        final Git git = this.getGitService().get().git().create(this.getRepo());
         final String result = git.submodule("status", "--", this.getSubmodule().get()).getText();
 
         this.ref = result.substring(1, result.indexOf(' ', 1) - 1);

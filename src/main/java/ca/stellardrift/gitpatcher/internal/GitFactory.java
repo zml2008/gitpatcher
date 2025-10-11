@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2025, Stellardrift and contributors
+ * Copyright (c) 2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,22 +20,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher.task;
+package ca.stellardrift.gitpatcher.internal;
 
-import ca.stellardrift.gitpatcher.internal.GitService;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.provider.Property;
+import java.io.File;
+import java.nio.file.Path;
+import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.services.ServiceReference;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.UntrackedTask;
 
-@UntrackedTask(because = "State is tracked by git")
-public abstract class GitTask extends DefaultTask {
-    @Internal
-    public abstract DirectoryProperty getRepo();
+public interface GitFactory extends AutoCloseable {
+    default Git create(final Provider<? extends Directory> repo) {
+        return this.create(repo.get().getAsFile());
+    }
 
-    @ServiceReference(GitService.SERVICE_NAME)
-    protected abstract Property<GitService> getGitService();
+    default Git create(final Directory repo) {
+        return this.create(repo.getAsFile());
+    }
+
+    default Git create(final File repo) {
+        return this.create(repo.toPath());
+    }
+
+    Git create(final Path path);
 }

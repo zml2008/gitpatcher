@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2025, Stellardrift and contributors
+ * Copyright (c) 2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,22 +20,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher.task;
+package ca.stellardrift.gitpatcher.internal;
 
-import ca.stellardrift.gitpatcher.internal.GitService;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.services.ServiceReference;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.UntrackedTask;
+import java.nio.file.Path;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-@UntrackedTask(because = "State is tracked by git")
-public abstract class GitTask extends DefaultTask {
-    @Internal
-    public abstract DirectoryProperty getRepo();
+public class DefaultGitFactory implements GitFactory {
+    private final ExecutorService ioExecutor = Executors.newCachedThreadPool();
 
-    @ServiceReference(GitService.SERVICE_NAME)
-    protected abstract Property<GitService> getGitService();
+    @Override
+    public Git create(final Path path) {
+        return new Git(path, this.ioExecutor);
+    }
+
+    @Override
+    public void close() {
+        this.ioExecutor.shutdown();
+        try {
+            if (!this.ioExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                this.ioExecutor.shutdownNow();
+            }
+        } catch (final InterruptedException ex) {
+            this.ioExecutor.shutdownNow();
+            throw new RuntimeException("Interrupted during shutdown");
+        }
+    }
 }

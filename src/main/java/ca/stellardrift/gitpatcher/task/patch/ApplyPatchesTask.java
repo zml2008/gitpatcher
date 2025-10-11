@@ -22,8 +22,8 @@
  */
 package ca.stellardrift.gitpatcher.task.patch;
 
-import ca.stellardrift.gitpatcher.Git;
-import ca.stellardrift.gitpatcher.Utils;
+import ca.stellardrift.gitpatcher.internal.Git;
+import ca.stellardrift.gitpatcher.internal.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -82,7 +82,7 @@ public abstract class ApplyPatchesTask extends PatchTask {
                 return false;
             }
 
-            final Git git = new Git(this.getRepo().get());
+            final Git git = this.getGitService().get().git().create(this.getRepo().get());
             return git.getStatus().isEmpty()
                 && Objects.equals(this.getCachedRef(), git.getRef())
                 && Objects.equals(this.getCachedSubmoduleRef(), this.getUpdateTask().getRef());
@@ -92,7 +92,7 @@ public abstract class ApplyPatchesTask extends PatchTask {
     @TaskAction
     void applyPatches() throws IOException {
         final File repoFile = this.getRepo().get().getAsFile();
-        final Git git = new Git(this.getSubmoduleRoot());
+        final Git git = this.getGitService().get().git().create(this.getSubmoduleRoot());
         final RepoState safeState = this.setupGit(git);
         try {
             git.branch("-f", "upstream").expectSuccessSilently();

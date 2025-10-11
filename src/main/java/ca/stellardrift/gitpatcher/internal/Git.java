@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher;
+package ca.stellardrift.gitpatcher.internal;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -49,29 +49,18 @@ import org.jspecify.annotations.Nullable;
  * <p>All unexpected exceptions will be rethrown as {@link org.gradle.api.GradleException}s.</p>
  */
 public final class Git {
-    private static final ExecutorService IO_EXECUTOR = Executors.newCachedThreadPool(); // todo: build service??
     private static final Logger LOGGER = Logging.getLogger(Git.class);
 
+    private final ExecutorService ioExecutor;
     private File repo;
     private @Nullable String committerNameOverride;
     private @Nullable String committerEmailOverride;
     private @Nullable String authorNameOverride;
     private @Nullable String authorEmailOverride;
 
-    public Git(final Provider<? extends Directory> repo) {
-        this(repo.get().getAsFile());
-    }
-
-    public Git(final Directory repo) {
-        this(repo.getAsFile());
-    }
-
-    public Git(final File repo) {
-        this.repo = repo;
-    }
-
-    public Git(final Path path) {
+    public Git(final Path path, final ExecutorService ioExecutor) {
         this.repo = path.toFile();
+        this.ioExecutor = ioExecutor;
     }
 
     // scaffolding //
@@ -208,7 +197,7 @@ public final class Git {
         this.decorateEnv(builder.environment());
         builder.directory(this.repo);
         try {
-            return new Command(builder.start(), args);
+            return new Command(builder.start(), args, this.ioExecutor);
         } catch (final IOException ex) {
             throw new GradleException("Failed to start command '" + args + "'", ex);
         }
@@ -217,10 +206,12 @@ public final class Git {
     public static final class Command {
         private final Process process;
         private final List<String> cli;
+        private final ExecutorService ioExecutor;
 
-        private Command(final Process process, final List<String> cli) {
+        private Command(final Process process, final List<String> cli, final ExecutorService ioExecutor) {
             this.process = process;
             this.cli = List.copyOf(cli);
+            this.ioExecutor = ioExecutor;
         }
 
         public int awaitCompletion() {
@@ -295,14 +286,14 @@ public final class Git {
             return awaitCompletion() == 0 ? text : null;
         }
 
-        private static void consumeStream(final InputStream processStream, final OutputStream target) {
-            IO_EXECUTOR.submit(() -> processStream.transferTo(target));
+        private void consumeStream(final InputStream processStream, final OutputStream target) {
+            this.ioExecutor.submit(() -> processStream.transferTo(target));
         }
 
         private static final int SKIP_SIZE = 2048;
 
-        private static void swallowStream(final InputStream swallowStream) {
-            IO_EXECUTOR.submit(() -> {
+        private void swallowStream(final InputStream swallowStream) {
+            this.ioExecutor.submit(() -> {
                 long skipped;
                 do {
                     skipped = swallowStream.skip(SKIP_SIZE);

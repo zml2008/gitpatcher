@@ -22,7 +22,7 @@
  */
 package ca.stellardrift.gitpatcher.task.patch;
 
-import ca.stellardrift.gitpatcher.Git;
+import ca.stellardrift.gitpatcher.internal.Git;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
@@ -68,7 +68,7 @@ public abstract class MakePatchesTask extends PatchTask {
                 return false;
             }
 
-            final Git git = new Git(this.getRepo());
+            final Git git = this.getGitService().get().git().create(this.getRepo());
             return Objects.equals(this.getCachedRef(), git.getRef());
         });
     }
@@ -91,7 +91,7 @@ public abstract class MakePatchesTask extends PatchTask {
             }
         }
 
-        final Git git = new Git(this.getRepo());
+        final Git git = this.getGitService().get().git().create(this.getRepo());
         final RepoState safeState = this.setupGit(git);
         try {
             git.formatPatch("--no-stat", "--zero-commit", "--full-index", "--no-signature", "-N", "-o", patchDir.getAbsolutePath(), "origin/upstream").expectSuccessSilently();
