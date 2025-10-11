@@ -92,7 +92,7 @@ public abstract class MakePatchesTask extends PatchTask {
         final Git git = this.getGitService().get().git().create(this.getRepo(), this.getLogger());
         final RepoState safeState = this.setupGit(git);
         try {
-            git.formatPatch("--no-stat", "--zero-commit", "--full-index", "--no-signature", "-N", "-o", patchDir.getAbsolutePath(), "origin/upstream").expectSuccessSilently();
+            git.formatPatch("--no-stat", "--zero-commit", "--full-index", "--no-signature", "-N", "-o", patchDir.getAbsolutePath(), "origin/upstream").expectSuccess();
 
             git.setRepo(this.getRoot());
             git.add("-A", patchDir.getAbsolutePath()).writeToLog();
@@ -102,8 +102,8 @@ public abstract class MakePatchesTask extends PatchTask {
                 List<String> diff = git.diff("--no-color", "-U1", "--staged", patch.getAbsolutePath()).getLines();
                 if (isUpToDate(diff)) {
                     this.getLogger().lifecycle("Skipping {} (up-to-date)", patch.getName());
-                    git.reset("HEAD", patch.getAbsolutePath()).expectSuccessSilently();
-                    git.checkout("--", patch.getAbsolutePath()).expectSuccessSilently();
+                    git.reset("HEAD", patch.getAbsolutePath()).expectSuccess();
+                    git.checkout("--", patch.getAbsolutePath()).expectSuccess();
                 } else {
                     this.setDidWork(true);
                     this.getLogger().lifecycle("Generating {}", patch.getName());

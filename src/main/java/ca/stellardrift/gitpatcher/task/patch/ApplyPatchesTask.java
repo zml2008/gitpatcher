@@ -27,6 +27,7 @@ import ca.stellardrift.gitpatcher.internal.Utils;
 import ca.stellardrift.gitpatcher.task.UpdateSubmodulesTask;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -38,29 +39,34 @@ import java.util.stream.Stream;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 
 @UntrackedTask(because = "State is tracked by git")
 public abstract class ApplyPatchesTask extends PatchTask {
-    @Internal
-    public abstract UpdateSubmodulesTask getUpdateTask();
-
-    public abstract void setUpdateTask(final UpdateSubmodulesTask task);
+    /**
+     * Output from {@link UpdateSubmodulesTask}.
+     *
+     * @return the file containing output from the update submodule task
+     */
+    @InputFile
+    public abstract RegularFileProperty getSubmoduleRefFile();
 
     @Override @Internal
     public abstract DirectoryProperty getPatchDir();
 
     @Override
     @InputFiles
-    public File@Nullable[] getPatches() {
+    public File@Nullable [] getPatches() {
         return super.getPatches();
     }
 
@@ -83,8 +89,16 @@ public abstract class ApplyPatchesTask extends PatchTask {
             final Git git = this.getGitService().get().git().create(this.getRepo().get(), this.getLogger());
             return git.getStatus().isEmpty()
                 && Objects.equals(this.getCachedRef(), git.getRef())
-                && Objects.equals(this.getCachedSubmoduleRef(), this.getUpdateTask().getRef());
+                && Objects.equals(this.getCachedSubmoduleRef(), this.readRefFile());
         });
+    }
+
+    private String readRefFile() {
+        try {
+            return Files.readString(this.getSubmoduleRefFile().get().getAsFile().toPath(), StandardCharsets.UTF_8).trim();
+        } catch (final IOException ex) {
+            throw new GradleException("Unable to read ref file for submodule", ex);
+        }
     }
 
     @TaskAction
@@ -93,11 +107,11 @@ public abstract class ApplyPatchesTask extends PatchTask {
         final Git git = this.getGitService().get().git().create(this.getSubmoduleRoot(), this.getLogger());
         final RepoState safeState = this.setupGit(git);
         try {
-            git.branch("-f", "upstream").expectSuccessSilently();
+            git.branch("-f", "upstream").expectSuccess();
 
             final Path rootDir = this.getRepo().get().getAsFile().toPath();
             final Path gitDir = rootDir.resolve(".git");
-            if (!Files.isDirectory(gitDir) || isEmptyDir(gitDir)) {
+            if (!Files.isDirectory(gitDir) || Utils.isEmptyDir(gitDir)) {
                 this.getLogger().lifecycle("Creating {} repository...", repoFile);
 
                 if (!Utils.deleteRecursively(gitDir)) {
@@ -146,9 +160,9 @@ public abstract class ApplyPatchesTask extends PatchTask {
 
             git.setRepo(this.getRepo());
             // reset origin url to handle cases where the project has been moved
-            git.remote("set-url", "origin", this.getSubmoduleRoot().get().getAsFile().getAbsolutePath()).expectSuccessSilently();
-            git.fetch("origin").expectSuccessSilently();
-            git.checkout("-B", "master", "origin/upstream").expectSuccessSilently();
+            git.remote("set-url", "origin", this.getSubmoduleRoot().get().getAsFile().getAbsolutePath()).expectSuccess();
+            git.fetch("origin").expectSuccess();
+            git.checkout("-B", "master", "origin/upstream").expectSuccess();
             git.reset("--hard").writeToLog();
 
             final File patchDir = this.getPatchDir().get().getAsFile();
@@ -177,15 +191,10 @@ public abstract class ApplyPatchesTask extends PatchTask {
                 this.getLogger().lifecycle("Successfully applied patches from {} to {}", this.getPatchDir().get().getAsFile(), repoFile);
             }
 
-            Files.writeString(this.getRefCache().get().getAsFile().toPath(), git.getRef() + "\n" + getUpdateTask().getRef());
+            Files.writeString(this.getRefCache().get().getAsFile().toPath(), git.getRef() + "\n" + this.readRefFile(), StandardCharsets.UTF_8);
         } finally {
             cleanUpSafeRepo(git, safeState);
         }
     }
 
-    static boolean isEmptyDir(final Path dir) throws IOException {
-        try (final Stream<Path> children = Files.list(dir)) {
-            return children.findAny().isEmpty();
-        }
-    }
 }

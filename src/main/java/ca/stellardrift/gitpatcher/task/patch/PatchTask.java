@@ -147,12 +147,12 @@ public abstract class PatchTask extends SubmoduleTask {
 
        if (!hasPatched) {
             // add patched root
-            git.config("--global", "--add", SAFE_DIRECTORY, this.getRepo().get().getAsFile().getAbsolutePath()).expectSuccessSilently();
+            git.config("--global", "--add", SAFE_DIRECTORY, this.getRepo().get().getAsFile().getAbsolutePath()).expectSuccess();
        }
 
        if (!hasUpstream) {
             // add submodule
-            git.config("--global", "--add", SAFE_DIRECTORY, this.getSubmoduleRoot().get().getAsFile().getAbsolutePath()).expectSuccessSilently();
+            git.config("--global", "--add", SAFE_DIRECTORY, this.getSubmoduleRoot().get().getAsFile().getAbsolutePath()).expectSuccess();
         }
 
         return new RepoState(hasUpstream, hasPatched);

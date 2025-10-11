@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
@@ -62,13 +63,19 @@ public abstract class GitPatcher implements Plugin<Project> {
 
             final String capitalizedName = Utils.capitalize(r.getName());
 
+            final ProjectLayout layout = p.getLayout();
             final TaskProvider<UpdateSubmodulesTask> updateSubmodules = p.getTasks().register("update" + capitalizedName + "Submodules", UpdateSubmodulesTask.class, upSub -> {
                 upSub.setGroup(GITPATCHER_TASK_GROUP);
                 upSub.dependsOn(findGit);
+                final String taskName = upSub.getName();;
+                upSub.getRefFile().set(layout.getBuildDirectory().dir("gitpatcher-tmp").map(d -> d.file(taskName + ".ref")));
             });
             rootUpdate.configure(it ->  it.dependsOn(updateSubmodules));
 
-            final TaskProvider<ApplyPatchesTask> apply = p.getTasks().register("apply" + capitalizedName + "Patches", ApplyPatchesTask.class, GitPatcher::applyGitPatcherGroup);
+            final TaskProvider<ApplyPatchesTask> apply = p.getTasks().register("apply" + capitalizedName + "Patches", ApplyPatchesTask.class, task -> {
+                task.setGroup(GITPATCHER_TASK_GROUP);
+                task.getSubmoduleRefFile().set(updateSubmodules.flatMap(UpdateSubmodulesTask::getRefFile));
+            });
             rootApply.configure(it -> it.dependsOn(apply));
 
             TaskProvider<MakePatchesTask> rebuild = p.getTasks().register("make" + capitalizedName + "Patches", MakePatchesTask.class, it -> {
@@ -94,8 +101,6 @@ public abstract class GitPatcher implements Plugin<Project> {
                 it.getRepo().convention(r.getRoot());
                 it.getSubmodule().convention(r.getSubmodule());
             });
-
-            p.afterEvaluate(p2 -> apply.configure(it -> it.setUpdateTask(updateSubmodules.get())));
         });
     }
 

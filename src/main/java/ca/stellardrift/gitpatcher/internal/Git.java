@@ -223,7 +223,7 @@ public final class Git {
             this.logger = logger;
         }
 
-        public int awaitCompletion() {
+        public int awaitCompletionSilently() {
             int result;
             try {
                 result = process.waitFor();
@@ -233,8 +233,13 @@ public final class Git {
             return result;
         }
 
-        public void expectSuccess() {
-            final int result = awaitCompletion();
+        public void awaitCompletion() {
+            consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
+            this.awaitCompletionSilently();
+        }
+
+        public void expectSuccessSilently() {
+            final int result = awaitCompletionSilently();
             if (result != 0) {
                 throw new GradleException("""
                     Process returned error code %d.
@@ -244,10 +249,15 @@ public final class Git {
             }
         }
 
+        public void expectSuccess() {
+            consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
+            this.expectSuccessSilently();
+        }
+
         public void writeTo(OutputStream out) {
             consumeStream(this.process.getInputStream(), out);
             consumeStream(this.process.getErrorStream(), logger, LogLevel.ERROR);
-            this.expectSuccess();
+            this.expectSuccessSilently();
         }
 
         public void writeToLog() {
@@ -257,23 +267,13 @@ public final class Git {
         public void writeTo(final Logger logger) {
             consumeStream(this.process.getInputStream(), logger, LogLevel.LIFECYCLE);
             consumeStream(this.process.getErrorStream(), logger, LogLevel.ERROR);
-            this.expectSuccess();
-        }
-
-        public void awaitCompletionSilently() {
-            consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
-            this.awaitCompletion();
-        }
-
-        public void expectSuccessSilently() {
-            consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
-            this.expectSuccess();
+            this.expectSuccessSilently();
         }
 
         public String getText() {
             consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
             final String stdout = this.readText0();
-            expectSuccess();
+            expectSuccessSilently();
             return stdout;
         }
 
@@ -296,7 +296,7 @@ public final class Git {
         public @Nullable String forceGetText() {
             consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
             final String text = this.readText0();
-            return awaitCompletion() == 0 ? text : null;
+            return awaitCompletionSilently() == 0 ? text : null;
         }
 
         private void consumeStream(final InputStream processStream, final OutputStream target) {

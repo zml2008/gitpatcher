@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Locale;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -96,5 +97,11 @@ public class Utils {
             }
         });
         return true;
+    }
+
+    public static boolean isEmptyDir(final Path dir) throws IOException {
+        try (final Stream<Path> children = Files.list(dir)) {
+            return children.findAny().isEmpty();
+        }
     }
 }

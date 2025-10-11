@@ -23,29 +23,33 @@
 package ca.stellardrift.gitpatcher.task;
 
 import ca.stellardrift.gitpatcher.internal.Git;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 public abstract class UpdateSubmodulesTask extends SubmoduleTask {
-    private String ref;
-
-    @Internal
-    public String getRef() {
-        return this.ref;
-    }
+    @OutputFile
+    public abstract RegularFileProperty getRefFile();
 
     @Override
     @InputDirectory
     public abstract DirectoryProperty getRepo();
 
     @TaskAction
-    public void updateSubmodules() {
+    public void updateSubmodules() throws IOException {
         final Git git = this.getGitService().get().git().create(this.getRepo(), this.getLogger());
         final String result = git.submodule("status", "--", this.getSubmodule().get()).getText();
 
-        this.ref = result.substring(1, result.indexOf(' ', 1) - 1);
+        Files.writeString(
+            this.getRefFile().get().getAsFile().toPath(),
+            result.substring(1, result.indexOf(' ', 1) - 1),
+            StandardCharsets.UTF_8
+        );
 
         if (result.startsWith(" ")) {
             this.setDidWork(false);

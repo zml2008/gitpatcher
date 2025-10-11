@@ -35,12 +35,15 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class GitPatcherTest {
     private static final Logger LOGGER = Logging.getLogger(GitPatcherTest.class);
+    private static final String OPT_PROTOCOL_FILE_ALLOW = "protocol.file.allow";
+    private static final String OPT_VALUE_ALWAYS = "always";
     private final GitFactory git = new DefaultGitFactory();
 
     @AfterEach
@@ -57,39 +60,62 @@ public class GitPatcherTest {
         assertDoesNotThrow(() -> ctx.build("help"));
     }
 
+    Path createTestingRepo(final TestContext ctx, final Path tempDir) throws IOException {
+        final Path repo = tempDir.resolve("patchable-repo");
+        final Git git = createTestingGit(repo);
+        git.run("init").expectSuccess();
+        Files.writeString(repo.resolve("apple.txt"), this.readResourceText("singleRepo/in/apple.txt"), StandardCharsets.UTF_8);
+        Files.writeString(repo.resolve("ball.txt"), this.readResourceText("singleRepo/in/ball.txt"), StandardCharsets.UTF_8);
+        Files.writeString(repo.resolve("cat.txt"), this.readResourceText("singleRepo/in/cat.txt"), StandardCharsets.UTF_8);
+        git.add("apple.txt", "ball.txt", "cat.txt").writeToLog();
+        git.run("commit", "-m", "initial commit").expectSuccess();
+
+        return repo;
+    }
+
     @GitPatcherFunctionalTest
     @DisplayName("singleRepo")
-    void testSingleRepo(final TestContext ctx) throws IOException {
+    void testSingleRepo(final TestContext ctx, @TempDir final Path upstreamDir) throws IOException {
         // init project
+        final Git projectGit = this.git.create(ctx.outputDirectory(), LOGGER);
         ctx.copyInput("build.gradle");
         ctx.copyInput("settings.gradle");
-        this.git.create(ctx.outputDirectory(), LOGGER).run("init").expectSuccess();
+        final Path upstreamRepo = this.createTestingRepo(ctx, upstreamDir);
+        final String previousFileProtocolState = projectGit.config("--global", "--get", OPT_PROTOCOL_FILE_ALLOW).forceGetText();
+        if (!OPT_VALUE_ALWAYS.equals(previousFileProtocolState)) {
+            projectGit.config("--global", OPT_PROTOCOL_FILE_ALLOW, OPT_VALUE_ALWAYS).expectSuccess();
+        }
 
-        final Path upstream = ctx.outputDirectory().resolve("upstream");
-        final Git git = createTestingGit(upstream);
-        git.run("init").expectSuccess();
-        ctx.copyInput("apple.txt", "upstream/apple.txt");
-        ctx.copyInput("ball.txt", "upstream/ball.txt");
-        ctx.copyInput("cat.txt", "upstream/cat.txt");
-        git.add("apple.txt", "ball.txt", "cat.txt").expectSuccess();
-        git.run("commit", "-m", "initial commit").writeToLog();
+        try {
+            projectGit.run("init").expectSuccess();
+            projectGit.submodule("add", upstreamRepo.toAbsolutePath().toString(), "upstream/").writeToLog();
+            projectGit.run("commit", "-m", "initial commit").expectSuccess();
 
-        // deposit patches
-        ctx.writeText("patches/0001-foo.patch", this.readResourceText("singleRepo/out/0001-foo.patch"));
-        ctx.writeText("patches/0002-bar.patch", this.readResourceText("singleRepo/out/0002-bar.patch"));
+            // deposit patches
+            ctx.writeText("patches/0001-foo.patch", this.readResourceText("singleRepo/out/0001-foo.patch"));
+            ctx.writeText("patches/0002-bar.patch", this.readResourceText("singleRepo/out/0002-bar.patch"));
 
-        // then fire away
-        ctx.build("applyPatches");
-        // check that the files match what is expected
-        ctx.assertOutputEquals("apple.txt", "patched/apple.txt");
-        ctx.assertOutputEquals("cat-patched.txt", "patched/cat.txt");
-        assertFalse(Files.exists(ctx.outputDirectory().resolve("patched/ball.txt")));
-        ctx.assertOutputEquals("dog-patched.txt", "patched/dog.txt");
+            // then fire away
+            ctx.build("applyPatches");
+            // check that the files match what is expected
+            ctx.assertOutputEquals("apple.txt", "patched/apple.txt");
+            ctx.assertOutputEquals("cat-patched.txt", "patched/cat.txt");
+            assertFalse(Files.exists(ctx.outputDirectory().resolve("patched/ball.txt")));
+            ctx.assertOutputEquals("dog-patched.txt", "patched/dog.txt");
 
-        // and make sure we are ok here
-        ctx.build("makePatches");
-        ctx.assertOutputEquals("0001-foo.patch", "patches/0001-foo.patch");
-        ctx.assertOutputEquals("0002-bar.patch", "patches/0002-bar.patch");
+            // and make sure we are ok here
+            ctx.build("makePatches");
+            ctx.assertOutputEquals("0001-foo.patch", "patches/0001-foo.patch");
+            ctx.assertOutputEquals("0002-bar.patch", "patches/0002-bar.patch");
+        } finally {
+            if (!OPT_VALUE_ALWAYS.equals(previousFileProtocolState)) {
+                if (previousFileProtocolState == null) {
+                    projectGit.config("--global", "--unset", OPT_PROTOCOL_FILE_ALLOW).expectSuccess();
+                } else {
+                    projectGit.config("--global", OPT_PROTOCOL_FILE_ALLOW, previousFileProtocolState).expectSuccess();
+                }
+            }
+        }
     }
 
     Git createTestingGit(final Path repo) throws IOException {
