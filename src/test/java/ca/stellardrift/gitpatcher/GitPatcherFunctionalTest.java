@@ -25,7 +25,7 @@ package ca.stellardrift.gitpatcher;
 import net.kyori.mammoth.test.GradleFunctionalTest;
 import net.kyori.mammoth.test.GradleParameters;
 import net.kyori.mammoth.test.TestVariant;
-import org.junit.jupiter.api.DisplayName;
+import net.kyori.mammoth.test.TestVariantResource;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -33,11 +33,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @GradleFunctionalTest
-@GradleParameters({"--warning-mode", "fail"})
-@TestVariant(gradleVersion = "8.9", maximumRuntimeVersion = 16)
-@TestVariant(gradleVersion = "8.10", minimumRuntimeVersion = 17)
-@TestVariant(gradleVersion = "9.0.0", minimumRuntimeVersion = 17)
-@TestVariant(gradleVersion = "9.0.0", minimumRuntimeVersion = 17, extraArguments = "-Dorg.gradle.unsafe.isolated-projects=true")
+@GradleParameters({"--warning-mode", "fail", "--stacktrace"})
+@TestVariant(gradleVersion = "8.10")
+@TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17)
+// @TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17, extraArguments = "-Dorg.gradle.unsafe.isolated-projects=true") // todo
+@TestVariantResource(value = "/injected-gradle-versions", optional = true)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 public @interface GitPatcherFunctionalTest {

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -65,6 +66,10 @@ public final class Git {
 
     public Git(final File repo) {
         this.repo = repo;
+    }
+
+    public Git(final Path path) {
+        this.repo = path.toFile();
     }
 
     // scaffolding //
@@ -181,9 +186,9 @@ public final class Git {
         LOGGER.info("gitpatcher: executing {}", args);
         final ProcessBuilder builder = new ProcessBuilder(args);
         this.decorateEnv(builder.environment());
-        builder.directory(repo);
+        builder.directory(this.repo);
         try {
-            return new Command(builder.start());
+            return new Command(builder.start(), args);
         } catch (final IOException ex) {
             throw new GradleException("Failed to start command '" + args + "'", ex);
         }
@@ -191,9 +196,11 @@ public final class Git {
 
     public static final class Command {
         private final Process process;
+        private final List<String> cli;
 
-        private Command(final Process process) {
+        private Command(final Process process, final List<String> cli) {
             this.process = process;
+            this.cli = List.copyOf(cli);
         }
 
         public int awaitCompletion() {
@@ -211,8 +218,8 @@ public final class Git {
             if (result != 0) {
                 throw new GradleException("""
                     Process returned error code %d.
-                    Invoked process: %s
-                    """.formatted(result, this.process.info().commandLine().orElseThrow())
+                    Invoked process: git %s
+                    """.formatted(result, String.join(" ", this.cli))
                 );
             }
         }

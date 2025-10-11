@@ -23,7 +23,6 @@
 package ca.stellardrift.gitpatcher.task;
 
 import ca.stellardrift.gitpatcher.Git;
-import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.Internal;

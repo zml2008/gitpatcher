@@ -24,6 +24,7 @@ package ca.stellardrift.gitpatcher.task.patch
 
 import ca.stellardrift.gitpatcher.Git
 import groovy.io.FileType
+import groovy.transform.CompileStatic
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -47,6 +48,7 @@ abstract class ApplyPatchesTask extends PatchTask {
     @Override @Internal
     abstract DirectoryProperty getPatchDir()
 
+    @CompileStatic
     @Override @InputFiles
     File[] getPatches() {
         return super.getPatches()
@@ -56,6 +58,7 @@ abstract class ApplyPatchesTask extends PatchTask {
     abstract DirectoryProperty getDestRepo()
 
     @Override @OutputFile
+    @CompileStatic
     Provider<RegularFile> getRefCache() {
         return super.getRefCache()
     }
@@ -78,7 +81,7 @@ abstract class ApplyPatchesTask extends PatchTask {
         def git = new Git(submoduleRoot)
         def safeState = setupGit(git)
         try {
-            git.branch('-f', 'upstream') >> null
+            git.branch('-f', 'upstream').awaitCompletionSilently()
 
             def gitDir = repo.get().dir('.git').asFile
             if (!gitDir.isDirectory() || gitDir.list().length == 0) {

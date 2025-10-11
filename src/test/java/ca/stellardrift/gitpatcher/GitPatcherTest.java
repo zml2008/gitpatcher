@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Stellardrift and contributors
+ * Copyright (c) 2023-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,15 +22,19 @@
  */
 package ca.stellardrift.gitpatcher;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import net.kyori.mammoth.test.TestContext;
 import org.junit.jupiter.api.DisplayName;
 
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class GitPatcherTest {
-
     @GitPatcherFunctionalTest
     @DisplayName("pluginSimplyApplies")
     void testPluginSimplyApplies(final TestContext ctx) throws IOException {
@@ -38,5 +42,56 @@ public class GitPatcherTest {
         ctx.copyInput("settings.gradle");
 
         assertDoesNotThrow(() -> ctx.build("help"));
+    }
+
+    @GitPatcherFunctionalTest
+    @DisplayName("singleRepo")
+    void testSingleRepo(final TestContext ctx) throws IOException {
+        // init project
+        ctx.copyInput("build.gradle");
+        ctx.copyInput("settings.gradle");
+        new Git(ctx.outputDirectory()).run("init").awaitCompletion();
+
+        final Path upstream = ctx.outputDirectory().resolve("upstream");
+        final Git git = createTestingGit(upstream);
+        git.run("init").awaitCompletion();
+        ctx.copyInput("apple.txt", "upstream/apple.txt");
+        ctx.copyInput("ball.txt", "upstream/ball.txt");
+        ctx.copyInput("cat.txt", "upstream/cat.txt");
+        git.add("apple.txt", "ball.txt", "cat.txt").awaitCompletion();
+        git.run("commit", "-m", "initial commit").awaitCompletion();
+
+        // deposit patches
+        ctx.writeText("patches/0001-foo.patch", this.readResourceText("singleRepo/out/0001-foo.patch"));
+        ctx.writeText("patches/0002-bar.patch", this.readResourceText("singleRepo/out/0002-bar.patch"));
+
+        // then fire away
+        ctx.build("applyPatches");
+        // check that the files match what is expected
+        ctx.assertOutputEquals("apple.txt", "patched/apple.txt");
+        ctx.assertOutputEquals("cat-patched.txt", "patched/cat.txt");
+        assertFalse(Files.exists(ctx.outputDirectory().resolve("patched/ball.txt")));
+        ctx.assertOutputEquals("dog-patched.txt", "patched/dog.txt");
+
+        // and make sure we are ok here
+        ctx.build("makePatches");
+        ctx.assertOutputEquals("0001-foo.patch", "patches/0001-foo.patch");
+        ctx.assertOutputEquals("0002-bar.patch", "patches/0002-bar.patch");
+    }
+
+    Git createTestingGit(final Path repo) throws IOException {
+        Files.createDirectories(repo);
+        final Git ret = new Git(repo.toFile());
+
+        ret.setCommitterNameOverride("gitpatcher");
+        ret.setCommitterEmailOverride("gitpatcher@localhost");
+
+        return ret;
+    }
+
+    String readResourceText(final String resourceName) throws IOException {
+        try (final InputStream is = this.getClass().getResourceAsStream(resourceName)) {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 }

@@ -46,7 +46,7 @@ class Utils {
             default:
                 final StringBuilder ret = new StringBuilder(input.length());
                 final int firstCodePoint = input.codePointAt(0);
-                ret.append(Character.toUpperCase(firstCodePoint));
+                ret.appendCodePoint(Character.toUpperCase(firstCodePoint));
                 ret.append(input.substring(Character.charCount(firstCodePoint)));
                 return ret.toString();
         }

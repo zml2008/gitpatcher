@@ -23,6 +23,7 @@
 package ca.stellardrift.gitpatcher.task.patch
 
 import ca.stellardrift.gitpatcher.Git
+import groovy.transform.CompileStatic
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
@@ -44,6 +45,7 @@ abstract class MakePatchesTask extends PatchTask {
     abstract DirectoryProperty getRepo()
 
     @Override @Internal
+    @CompileStatic
     Provider<RegularFile> getRefCache() { // not used in this task
         return super.getRefCache()
     }
@@ -52,6 +54,7 @@ abstract class MakePatchesTask extends PatchTask {
     abstract DirectoryProperty getPatchDir()
 
     @Override @Internal
+    @CompileStatic
     File[] getPatches() {
         return super.getPatches()
     }
