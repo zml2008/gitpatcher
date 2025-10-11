@@ -307,14 +307,14 @@ public final class Git {
 
         private void consumeStream(final InputStream processStream, final Logger target, final LogLevel level) {
             this.ioExecutor.submit(() -> {
-                try (final InputStreamReader isr = new InputStreamReader(processStream, StandardCharsets.UTF_8);
-                     final BufferedReader reader = new BufferedReader(isr)) {
+                try (final BufferedReader reader = new BufferedReader(new InputStreamReader(processStream, StandardCharsets.UTF_8))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         target.log(level, line);
                     }
                 } catch (final IOException ex) {
-                    target.error("Failed to read process output from [{}]", String.join(" ", this.cli), ex);
+                    // The process will sometimes terminate without a trailing newline
+                    target.debug("Failed to read process output from [{}]", String.join(" ", this.cli), ex);
                 }
             });
         }
