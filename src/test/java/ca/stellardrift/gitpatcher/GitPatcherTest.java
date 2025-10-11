@@ -59,7 +59,7 @@ public class GitPatcherTest {
         ctx.copyInput("ball.txt", "upstream/ball.txt");
         ctx.copyInput("cat.txt", "upstream/cat.txt");
         git.add("apple.txt", "ball.txt", "cat.txt").expectSuccess();
-        git.run("commit", "-m", "initial commit").expectSuccess();
+        git.run("commit", "-m", "initial commit").writeTo(System.out);
 
         // deposit patches
         ctx.writeText("patches/0001-foo.patch", this.readResourceText("singleRepo/out/0001-foo.patch"));
