@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
 
 @GradleFunctionalTest
 @GradleParameters({"--warning-mode", "fail", "--stacktrace"})
-@TestVariant(gradleVersion = "8.10")
+@TestVariant(gradleVersion = "8.10", maximumRuntimeVersion = 24)
 @TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17)
 // @TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17, extraArguments = "-Dorg.gradle.unsafe.isolated-projects=true") // todo
 @TestVariantResource(value = "/injected-gradle-versions", optional = true)
