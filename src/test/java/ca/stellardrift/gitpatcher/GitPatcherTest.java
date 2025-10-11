@@ -60,7 +60,7 @@ public class GitPatcherTest {
         assertDoesNotThrow(() -> ctx.build("help"));
     }
 
-    Path createTestingRepo(final TestContext ctx, final Path tempDir) throws IOException {
+    Path createTestingRepo(final Path tempDir) throws IOException {
         final Path repo = tempDir.resolve("patchable-repo");
         final Git git = createTestingGit(repo);
         git.run("init").expectSuccess();
@@ -77,10 +77,10 @@ public class GitPatcherTest {
     @DisplayName("singleRepo")
     void testSingleRepo(final TestContext ctx, @TempDir final Path upstreamDir) throws IOException {
         // init project
-        final Git projectGit = this.git.create(ctx.outputDirectory(), LOGGER);
+        final Git projectGit = this.createTestingGit(ctx.outputDirectory());
         ctx.copyInput("build.gradle");
         ctx.copyInput("settings.gradle");
-        final Path upstreamRepo = this.createTestingRepo(ctx, upstreamDir);
+        final Path upstreamRepo = this.createTestingRepo(upstreamDir);
         final String previousFileProtocolState = projectGit.config("--global", "--get", OPT_PROTOCOL_FILE_ALLOW).forceGetText();
         if (!OPT_VALUE_ALWAYS.equals(previousFileProtocolState)) {
             projectGit.config("--global", OPT_PROTOCOL_FILE_ALLOW, OPT_VALUE_ALWAYS).expectSuccess();
