@@ -5,7 +5,7 @@ the PATH is required for it to run.
 
 # Installation
 1. Add a submodule for the project you want to patch.
-2. Apply gitpatcher to your Gradle project:
+2. Apply gitpatcher to your Gradle project (**NOTE:** gitpatcher from v2.0 onwards requires the Gradle daemon to be running at least Java 17):
 
   ```gradle
   plugins {
