@@ -55,6 +55,8 @@ public final class Git {
     private File repo;
     private @Nullable String committerNameOverride;
     private @Nullable String committerEmailOverride;
+    private @Nullable String authorNameOverride;
+    private @Nullable String authorEmailOverride;
 
     public Git(final Provider<? extends Directory> repo) {
         this(repo.get().getAsFile());
@@ -97,6 +99,14 @@ public final class Git {
         this.committerEmailOverride = committerEmailOverride;
     }
 
+    public void setAuthorNameOverride(final @Nullable String authorNameOverride) {
+        this.authorNameOverride = authorNameOverride;
+    }
+
+    public void setAuthorEmailOverride(final @Nullable String authorEmailOverride) {
+        this.authorEmailOverride = authorEmailOverride;
+    }
+
     private void decorateEnv(final Map<String, String> env) {
         if (this.committerNameOverride != null) {
             env.put("GIT_COMMITTER_NAME", this.committerNameOverride);
@@ -104,6 +114,14 @@ public final class Git {
 
         if (this.committerEmailOverride != null) {
             env.put("GIT_COMMITTER_EMAIL", this.committerEmailOverride);
+        }
+
+        if (this.authorNameOverride != null) {
+            env.put("GIT_AUTHOR_NAME", this.authorNameOverride);
+        }
+
+        if (this.authorEmailOverride != null) {
+            env.put("GIT_AUTHOR_EMAIL", this.authorEmailOverride);
         }
     }
 

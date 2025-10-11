@@ -85,6 +85,8 @@ public class GitPatcherTest {
 
         ret.setCommitterNameOverride("gitpatcher");
         ret.setCommitterEmailOverride("gitpatcher@localhost");
+        ret.setAuthorNameOverride("gitpatcher");
+        ret.setAuthorEmailOverride("gitpatcher@localhost");
 
         return ret;
     }
