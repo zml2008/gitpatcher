@@ -50,16 +50,16 @@ public class GitPatcherTest {
         // init project
         ctx.copyInput("build.gradle");
         ctx.copyInput("settings.gradle");
-        new Git(ctx.outputDirectory()).run("init").awaitCompletion();
+        new Git(ctx.outputDirectory()).run("init").expectSuccess();
 
         final Path upstream = ctx.outputDirectory().resolve("upstream");
         final Git git = createTestingGit(upstream);
-        git.run("init").awaitCompletion();
+        git.run("init").expectSuccess();
         ctx.copyInput("apple.txt", "upstream/apple.txt");
         ctx.copyInput("ball.txt", "upstream/ball.txt");
         ctx.copyInput("cat.txt", "upstream/cat.txt");
-        git.add("apple.txt", "ball.txt", "cat.txt").awaitCompletion();
-        git.run("commit", "-m", "initial commit").awaitCompletion();
+        git.add("apple.txt", "ball.txt", "cat.txt").expectSuccess();
+        git.run("commit", "-m", "initial commit").expectSuccess();
 
         // deposit patches
         ctx.writeText("patches/0001-foo.patch", this.readResourceText("singleRepo/out/0001-foo.patch"));

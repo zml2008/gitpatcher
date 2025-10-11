@@ -76,7 +76,9 @@ public final class Git {
 
     public void setRepo(final File repo) {
         this.repo = repo;
-        assert repo.exists();
+        if (!repo.exists()) {
+            throw new GradleException("Repo directory " + repo + " does not exist!");
+        }
     }
 
     public void setRepo(final Directory repo) {
@@ -218,7 +220,7 @@ public final class Git {
             if (result != 0) {
                 throw new GradleException("""
                     Process returned error code %d.
-                    Invoked process: git %s
+                    Invoked process: %s
                     """.formatted(result, String.join(" ", this.cli))
                 );
             }

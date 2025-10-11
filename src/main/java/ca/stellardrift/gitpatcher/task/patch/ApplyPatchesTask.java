@@ -95,7 +95,7 @@ public abstract class ApplyPatchesTask extends PatchTask {
         final Git git = new Git(this.getSubmoduleRoot());
         final RepoState safeState = this.setupGit(git);
         try {
-            git.branch("-f", "upstream").awaitCompletionSilently();
+            git.branch("-f", "upstream").expectSuccessSilently();
 
             final Path rootDir = this.getRepo().get().getAsFile().toPath();
             final Path gitDir = rootDir.resolve(".git");
