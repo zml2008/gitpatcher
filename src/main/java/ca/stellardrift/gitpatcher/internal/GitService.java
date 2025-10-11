@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,21 +20,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher.task
+package ca.stellardrift.gitpatcher.internal;
 
-import groovy.transform.CompileStatic
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
+import org.gradle.api.services.BuildService;
+import org.gradle.api.services.BuildServiceParameters;
 
-@CompileStatic
-abstract class SubmoduleTask extends GitTask {
+/**
+ * Build service for managing git instance lifecycles.
+ */
+public abstract class GitService implements AutoCloseable, BuildService<BuildServiceParameters.None> {
+    public static final String SERVICE_NAME = "ca.stellardrift.gitpatcher.git";
 
-    @Input
-    @Optional
-    abstract Property<String> getSubmodule();
+    private transient final GitFactory gitFactory;
 
-    {
-        onlyIf { submodule.isPresent() }
+    public GitService() {
+        this.gitFactory = new DefaultGitFactory();
+    }
+
+    public GitFactory git() {
+        return this.gitFactory;
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.gitFactory.close();
     }
 }

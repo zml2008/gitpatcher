@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, Stellardrift and contributors
+ * Copyright (c) 2015-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,25 +20,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher;
+package ca.stellardrift.gitpatcher.task;
 
-import net.kyori.mammoth.test.GradleFunctionalTest;
-import net.kyori.mammoth.test.GradleParameters;
-import net.kyori.mammoth.test.TestVariant;
-import net.kyori.mammoth.test.TestVariantResource;
+import ca.stellardrift.gitpatcher.internal.Git;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.TaskAction;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public abstract class UpdateSubmodulesTask extends SubmoduleTask {
+    private String ref;
 
-@GradleFunctionalTest
-@GradleParameters({"--warning-mode", "fail", "--stacktrace"})
-@TestVariant(gradleVersion = "8.10", maximumRuntimeVersion = 24)
-@TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17)
-// @TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17, extraArguments = "-Dorg.gradle.unsafe.isolated-projects=true") // todo
-@TestVariantResource(value = "/injected-gradle-versions", optional = true)
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
-public @interface GitPatcherFunctionalTest {
+    @Internal
+    public String getRef() {
+        return this.ref;
+    }
+
+    @Override
+    @InputDirectory
+    public abstract DirectoryProperty getRepo();
+
+    @TaskAction
+    public void updateSubmodules() {
+        final Git git = this.getGitService().get().git().create(this.getRepo());
+        final String result = git.submodule("status", "--", this.getSubmodule().get()).getText();
+
+        this.ref = result.substring(1, result.indexOf(' ', 1) - 1);
+
+        if (result.startsWith(" ")) {
+            this.setDidWork(false);
+            return;
+        }
+
+        git.submodule("update", "--init", "--recursive").writeTo(System.out);
+    }
 }

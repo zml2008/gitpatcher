@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Stellardrift and contributors
+ * Copyright (c) 2023-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,69 +25,81 @@ package ca.stellardrift.gitpatcher;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
 
-public interface RepoPatchDetails {
-    /**
-     * Get the name of this {@link RepoPatchDetails}.
-     *
-     * @return the name
-     */
-    String getName();
-
+/**
+ * @deprecated register a {@link RepoPatchDetails} to {@link GitPatcherExtension#getPatchedRepos()}
+ * instead, that is all this extension does now internally.
+ */
+@Deprecated
+public interface PatchExtension {
     /**
      * The root/project directory.
      *
      * <p>This usually does not need to be manually set.</p>
      *
      * @return the root
-     * @since 1.1.0
+     * @since 1.0.0
+     * @deprecated See {@link PatchExtension}
      */
+    @Deprecated
     DirectoryProperty getRoot();
 
     /**
      * The name of the submodule directory created.
      *
      * @return the submodule
-     * @since 1.1.0
+     * @since 1.0.0
+     * @deprecated See {@link PatchExtension}
      */
+    @Deprecated
     Property<String> getSubmodule();
 
     /**
      * The target folder for the patched repository.
      *
      * @return the target folder
-     * @since 1.1.0
+     * @since 1.0.0
+     * @deprecated See {@link PatchExtension}
      */
+    @Deprecated
     DirectoryProperty getTarget();
 
     /**
      * The folder where the patches are saved
      *
      * @return the patch directory
-     * @since 1.1.0
+     * @since 1.0.0
+     * @deprecated See {@link PatchExtension}
      */
+    @Deprecated
     DirectoryProperty getPatches();
 
     /**
      * Whether to add the patched repo to git's safe directories list.
      *
      * @return the add as safe directory property
-     * @since 1.1.0
+     * @since 1.0.0
+     * @deprecated See {@link PatchExtension}
      */
+    @Deprecated
     Property<Boolean> getAddAsSafeDirectory();
 
     /**
      * A temporary committer name to use for applied patches.
      *
      * @return the committer name property
-     * @since 1.1.0
+     * @since 1.0.0
+     * @deprecated See {@link PatchExtension}
      */
+    @Deprecated
     Property<String> getCommitterNameOverride();
 
     /**
      * A temporary committer name to use for applied patches.
      *
      * @return the committer name property
-     * @since 1.1.0
+     * @since 1.0.0
+     * @deprecated See {@link PatchExtension}
      */
+    @Deprecated
     Property<String> getCommitterEmailOverride();
 }

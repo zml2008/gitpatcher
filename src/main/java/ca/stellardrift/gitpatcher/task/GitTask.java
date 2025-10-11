@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2015-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,17 +20,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher.task
+package ca.stellardrift.gitpatcher.task;
 
-import groovy.transform.CompileStatic
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.UntrackedTask
+import ca.stellardrift.gitpatcher.internal.GitService;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.services.ServiceReference;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.UntrackedTask;
 
 @UntrackedTask(because = "State is tracked by git")
-@CompileStatic
-abstract class GitTask extends DefaultTask {
+public abstract class GitTask extends DefaultTask {
     @Internal
-    abstract DirectoryProperty getRepo()
+    public abstract DirectoryProperty getRepo();
+
+    @ServiceReference(GitService.SERVICE_NAME)
+    protected abstract Property<GitService> getGitService();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2023, Stellardrift and contributors
+ * Copyright (c) 2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,42 +20,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher.task
+package ca.stellardrift.gitpatcher.internal;
 
-import org.gradle.api.file.DirectoryProperty
+import java.nio.file.Path;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import static java.lang.System.out
+public class DefaultGitFactory implements GitFactory {
+    private final ExecutorService ioExecutor = Executors.newCachedThreadPool();
 
-import ca.stellardrift.gitpatcher.Git
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.TaskAction
+    @Override
+    public Git create(final Path path) {
+        return new Git(path, this.ioExecutor);
+    }
 
-abstract class UpdateSubmodulesTask extends SubmoduleTask {
-
-    private String ref
-
-    @TaskAction
-    void updateSubmodules() {
-        def git = new Git(repo)
-        def result = git.submodule('status', '--', submodule.get()).text
-
-        this.ref = result[1 .. result.indexOf(' ', 1) - 1]
-
-        if (result.startsWith(' ')) {
-            didWork = false
-            return
+    @Override
+    public void close() {
+        this.ioExecutor.shutdown();
+        try {
+            if (!this.ioExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                this.ioExecutor.shutdownNow();
+            }
+        } catch (final InterruptedException ex) {
+            this.ioExecutor.shutdownNow();
+            throw new RuntimeException("Interrupted during shutdown");
         }
-
-        git.submodule('update', '--init', '--recursive') >> out
     }
-
-    @Internal
-    String getRef() {
-        ref
-    }
-
-    @Override @InputDirectory
-    abstract DirectoryProperty getRepo()
-
 }

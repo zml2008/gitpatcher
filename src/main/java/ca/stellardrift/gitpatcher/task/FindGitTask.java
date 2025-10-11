@@ -20,34 +20,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher.task
+package ca.stellardrift.gitpatcher.task;
 
-import ca.stellardrift.gitpatcher.Git
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.UntrackedTask
+import ca.stellardrift.gitpatcher.internal.Git;
+import ca.stellardrift.gitpatcher.internal.GitService;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.services.ServiceReference;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 
 @UntrackedTask(because = "Always check for Git in the environment when requested")
-abstract class FindGitTask extends DefaultTask {
-
+public abstract class FindGitTask extends DefaultTask {
     @Internal
-    protected abstract DirectoryProperty getRootDir();
+    public abstract DirectoryProperty getRootDir();
 
-    FindGitTask() {
-        this.rootDir.set(project.rootDir) // todo: pull this from ProjectLayout in 8.13+
+    @ServiceReference(GitService.SERVICE_NAME)
+    protected abstract Property<GitService> getGitService();
+
+    public FindGitTask() {
+        this.getRootDir().set(this.getProject().getRootDir()); // todo: pull this from ProjectLayout in 8.13+
     }
 
     @TaskAction
     void findGit() {
-        def git = new Git(rootDir.get().asFile)
+        final Git git = this.getGitService().get().git().create(this.getRootDir());
         try {
-            def version = git.version().text.readLines().join(', ')
-            logger.lifecycle("Using $version for patching submodules.")
-        } catch (Throwable e) {
+            final String version = String.join(",", git.version().getLines());
+            this.getLogger().lifecycle("Using {} for patching submodules.", version);
+        } catch (final Throwable ex) {
             throw new UnsupportedOperationException(
-                    'Failed to verify Git version. Make sure running the Gradle build in an environment where Git is in your PATH.', e);
+                "Failed to verify Git version. Make sure running the Gradle build in an environment where Git is in your PATH.",
+                ex
+            );
         }
     }
 

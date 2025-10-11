@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, Stellardrift and contributors
+ * Copyright (c) 2015-2025, Stellardrift and contributors
  * Copyright (c) 2015, Minecrell <https://github.com/Minecrell>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,25 +20,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ca.stellardrift.gitpatcher;
+package ca.stellardrift.gitpatcher.task;
 
-import net.kyori.mammoth.test.GradleFunctionalTest;
-import net.kyori.mammoth.test.GradleParameters;
-import net.kyori.mammoth.test.TestVariant;
-import net.kyori.mammoth.test.TestVariantResource;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public abstract class SubmoduleTask extends GitTask {
+    @Input
+    @Optional
+    public abstract Property<String> getSubmodule();
 
-@GradleFunctionalTest
-@GradleParameters({"--warning-mode", "fail", "--stacktrace"})
-@TestVariant(gradleVersion = "8.10", maximumRuntimeVersion = 24)
-@TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17)
-// @TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17, extraArguments = "-Dorg.gradle.unsafe.isolated-projects=true") // todo
-@TestVariantResource(value = "/injected-gradle-versions", optional = true)
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
-public @interface GitPatcherFunctionalTest {
+    {
+        this.onlyIf($ -> this.getSubmodule().isPresent());
+    }
 }
