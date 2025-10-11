@@ -13,7 +13,6 @@ group = 'ca.stellardrift'
 description = 'A Gradle plugin to manage patches for Git repositories'
 
 if ("true" == System.getenv("GITHUB_ACTIONS")) {
-    println "actions!"
     apply plugin: 'dev.sigstore.sign'
 }
 
