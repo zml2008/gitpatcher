@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
@@ -39,7 +39,7 @@ public abstract class UpdateSubmodulesTask extends SubmoduleTask {
     public abstract RegularFileProperty getRefFile();
 
     @Override
-    @InputDirectory
+    @Internal
     public abstract DirectoryProperty getRepo();
 
     @TaskAction
