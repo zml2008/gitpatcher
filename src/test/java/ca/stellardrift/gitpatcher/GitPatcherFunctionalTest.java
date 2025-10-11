@@ -35,7 +35,7 @@ import net.kyori.mammoth.test.TestVariantResource;
 @GradleParameters({"--warning-mode", "fail", "--stacktrace"})
 @TestVariant(gradleVersion = "8.10", maximumRuntimeVersion = 24)
 @TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17)
-// @TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17, extraArguments = "-Dorg.gradle.unsafe.isolated-projects=true") // todo
+@TestVariant(gradleVersion = "9.1.0", minimumRuntimeVersion = 17, extraArguments = "-Dorg.gradle.unsafe.isolated-projects=true")
 @TestVariantResource(value = "/injected-gradle-versions", optional = true)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
