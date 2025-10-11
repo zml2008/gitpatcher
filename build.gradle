@@ -1,6 +1,5 @@
 plugins {
     id 'java-gradle-plugin'
-    id 'groovy'
 
     alias libs.plugins.indra
     alias libs.plugins.indra.gradlePluginPublish
@@ -19,10 +18,6 @@ dependencies {
     testImplementation libs.junit.jupiter.api
     testRuntimeOnly libs.junit.jupiter.engine
     testRuntimeOnly libs.junit.launcher
-}
-
-tasks.withType(GroovyCompile).configureEach {
-    groovyOptions.optimizationOptions.indy = true
 }
 
 indra {
@@ -67,16 +62,6 @@ indraSpotlessLicenser {
 
 spotless {
     ratchetFrom 'origin/trunk'
-}
-
-tasks.named('javadoc') {
-    enabled = false
-}
-
-tasks.named('javadocJar', Jar).configure {
-    dependsOn 'groovydoc'
-    archiveClassifier = 'groovydoc'
-    from groovydoc.destinationDir
 }
 
 tasks.named('jar', Jar) {
