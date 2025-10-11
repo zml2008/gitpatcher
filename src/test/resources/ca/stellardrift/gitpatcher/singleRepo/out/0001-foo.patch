@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: gitpatcher <gitpacher@localhost>
+Date: Fri, 10 Oct 2025 20:27:09 -0700
+Subject: [PATCH] foo
+
+
+diff --git a/ball.txt b/ball.txt
+deleted file mode 100644
+index 94164f4dd1bc109059cd2bec8f5e9cd65ad8eebf..0000000000000000000000000000000000000000
+--- a/ball.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-the quick brown fox jumped over the lazy dog
+diff --git a/cat.txt b/cat.txt
+index 83ed9152680f9374f5cadd1d9d909116cc29db71..33e60a5ce3cb5077bf42f82c3a53853de4139de9 100644
+--- a/cat.txt
++++ b/cat.txt
+@@ -1 +1 @@
+-want to see something cool?
++ you will see something cool!
+diff --git a/dog.txt b/dog.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..43336e2387d4c18f56dd59c23e2cb036a3a21dac
+--- /dev/null
++++ b/dog.txt
+@@ -0,0 +1 @@
++woof!
