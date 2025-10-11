@@ -31,7 +31,9 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 
+@UntrackedTask(because = "State is tracked by git")
 public abstract class UpdateSubmodulesTask extends SubmoduleTask {
     @OutputFile
     public abstract RegularFileProperty getRefFile();

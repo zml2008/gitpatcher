@@ -279,13 +279,15 @@ public final class Git {
 
         public List<String> getLines() {
             consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
+            final List<String> ret;
             try (final BufferedReader reader = this.process.inputReader(StandardCharsets.UTF_8)) {
-                final List<String> ret = reader.lines().toList();
-                this.expectSuccess();
-                return ret;
+                ret = reader.lines().toList();
             } catch (final IOException ex) {
                 throw new GradleException("Unable to read command output", ex);
             }
+
+            this.expectSuccess();
+            return ret;
         }
 
         /**
