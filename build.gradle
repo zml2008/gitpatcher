@@ -42,12 +42,10 @@ indra {
             }
             contributors {
                 contributor {
-                    id = "minecrell"
                     name = "Minecrell"
                     roles = ["Former Maintainer"]
                 }
                 contributor {
-                    id = "forge"
                     name = "MinecraftForge"
                     roles = ["Former Maintainer"]
                 }
