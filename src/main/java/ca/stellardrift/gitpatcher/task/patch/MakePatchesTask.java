@@ -38,7 +38,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.jspecify.annotations.Nullable;
 
-import static java.lang.System.out;
 
 @UntrackedTask(because = "State is tracked by git")
 public abstract class MakePatchesTask extends PatchTask {
@@ -67,7 +66,7 @@ public abstract class MakePatchesTask extends PatchTask {
                 return false;
             }
 
-            final Git git = this.getGitService().get().git().create(this.getRepo());
+            final Git git = this.getGitService().get().git().create(this.getRepo(), this.getLogger());
             return Objects.equals(this.getCachedRef(), git.getRef());
         });
     }
@@ -90,13 +89,13 @@ public abstract class MakePatchesTask extends PatchTask {
             }
         }
 
-        final Git git = this.getGitService().get().git().create(this.getRepo());
+        final Git git = this.getGitService().get().git().create(this.getRepo(), this.getLogger());
         final RepoState safeState = this.setupGit(git);
         try {
             git.formatPatch("--no-stat", "--zero-commit", "--full-index", "--no-signature", "-N", "-o", patchDir.getAbsolutePath(), "origin/upstream").expectSuccessSilently();
 
             git.setRepo(this.getRoot());
-            git.add("-A", patchDir.getAbsolutePath()).writeTo(out);
+            git.add("-A", patchDir.getAbsolutePath()).writeToLog();
 
             this.setDidWork(false);
             for (final File patch : this.getPatches()) {

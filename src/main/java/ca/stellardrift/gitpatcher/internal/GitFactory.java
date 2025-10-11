@@ -25,20 +25,21 @@ package ca.stellardrift.gitpatcher.internal;
 import java.io.File;
 import java.nio.file.Path;
 import org.gradle.api.file.Directory;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.provider.Provider;
 
 public interface GitFactory extends AutoCloseable {
-    default Git create(final Provider<? extends Directory> repo) {
-        return this.create(repo.get().getAsFile());
+    default Git create(final Provider<? extends Directory> repo, final Logger logger) {
+        return this.create(repo.get().getAsFile(), logger);
     }
 
-    default Git create(final Directory repo) {
-        return this.create(repo.getAsFile());
+    default Git create(final Directory repo, final Logger logger) {
+        return this.create(repo.getAsFile(), logger);
     }
 
-    default Git create(final File repo) {
-        return this.create(repo.toPath());
+    default Git create(final File repo, final Logger logger) {
+        return this.create(repo.toPath(), logger);
     }
 
-    Git create(final Path path);
+    Git create(final Path path, final Logger logger);
 }

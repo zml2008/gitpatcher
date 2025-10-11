@@ -26,13 +26,14 @@ import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.gradle.api.logging.Logger;
 
 public class DefaultGitFactory implements GitFactory {
     private final ExecutorService ioExecutor = Executors.newCachedThreadPool();
 
     @Override
-    public Git create(final Path path) {
-        return new Git(path, this.ioExecutor);
+    public Git create(final Path path, final Logger logger) {
+        return new Git(path, this.ioExecutor, logger);
     }
 
     @Override

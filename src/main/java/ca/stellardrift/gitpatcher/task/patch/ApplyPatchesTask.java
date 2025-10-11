@@ -47,7 +47,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.jetbrains.annotations.Nullable;
 
-import static java.lang.System.out;
 
 @UntrackedTask(because = "State is tracked by git")
 public abstract class ApplyPatchesTask extends PatchTask {
@@ -81,7 +80,7 @@ public abstract class ApplyPatchesTask extends PatchTask {
                 return false;
             }
 
-            final Git git = this.getGitService().get().git().create(this.getRepo().get());
+            final Git git = this.getGitService().get().git().create(this.getRepo().get(), this.getLogger());
             return git.getStatus().isEmpty()
                 && Objects.equals(this.getCachedRef(), git.getRef())
                 && Objects.equals(this.getCachedSubmoduleRef(), this.getUpdateTask().getRef());
@@ -91,7 +90,7 @@ public abstract class ApplyPatchesTask extends PatchTask {
     @TaskAction
     void applyPatches() throws IOException {
         final File repoFile = this.getRepo().get().getAsFile();
-        final Git git = this.getGitService().get().git().create(this.getSubmoduleRoot());
+        final Git git = this.getGitService().get().git().create(this.getSubmoduleRoot(), this.getLogger());
         final RepoState safeState = this.setupGit(git);
         try {
             git.branch("-f", "upstream").expectSuccessSilently();
@@ -140,7 +139,7 @@ public abstract class ApplyPatchesTask extends PatchTask {
                     }
                 });
 
-                git.clone("--recursive", this.getSubmodule().get(), this.getRepo().get().getAsFile().getAbsolutePath(), "-b", "upstream").writeTo(out);
+                git.clone("--recursive", this.getSubmodule().get(), this.getRepo().get().getAsFile().getAbsolutePath(), "-b", "upstream").writeToLog();
             }
 
             this.getLogger().lifecycle("Resetting {}...", repoFile);
@@ -150,7 +149,7 @@ public abstract class ApplyPatchesTask extends PatchTask {
             git.remote("set-url", "origin", this.getSubmoduleRoot().get().getAsFile().getAbsolutePath()).expectSuccessSilently();
             git.fetch("origin").expectSuccessSilently();
             git.checkout("-B", "master", "origin/upstream").expectSuccessSilently();
-            git.reset("--hard").writeTo(out);
+            git.reset("--hard").writeToLog();
 
             final File patchDir = this.getPatchDir().get().getAsFile();
             if (!patchDir.isDirectory()) {
@@ -161,7 +160,7 @@ public abstract class ApplyPatchesTask extends PatchTask {
 
             if ("true".equalsIgnoreCase(git.config("commit.gpgsign").forceGetText())) {
                 this.getLogger().warn("Disabling GPG signing for the gitpatcher repository");
-                git.config("commit.gpgsign", "false").writeTo(out);
+                git.config("commit.gpgsign", "false").writeToLog();
             }
 
             final File[] patches = this.getPatches();
@@ -173,7 +172,7 @@ public abstract class ApplyPatchesTask extends PatchTask {
                         Stream.of("--3way"),
                         Arrays.stream(patches).map(File::getAbsolutePath)
                     ).toArray(String[]::new))
-                    .writeTo(out);
+                    .writeToLog();
 
                 this.getLogger().lifecycle("Successfully applied patches from {} to {}", this.getPatchDir().get().getAsFile(), repoFile);
             }

@@ -42,7 +42,7 @@ public abstract class UpdateSubmodulesTask extends SubmoduleTask {
 
     @TaskAction
     public void updateSubmodules() {
-        final Git git = this.getGitService().get().git().create(this.getRepo());
+        final Git git = this.getGitService().get().git().create(this.getRepo(), this.getLogger());
         final String result = git.submodule("status", "--", this.getSubmodule().get()).getText();
 
         this.ref = result.substring(1, result.indexOf(' ', 1) - 1);
@@ -52,6 +52,6 @@ public abstract class UpdateSubmodulesTask extends SubmoduleTask {
             return;
         }
 
-        git.submodule("update", "--init", "--recursive").writeTo(System.out);
+        git.submodule("update", "--init", "--recursive").writeToLog();
     }
 }

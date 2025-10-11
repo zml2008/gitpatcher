@@ -46,7 +46,7 @@ public abstract class FindGitTask extends DefaultTask {
 
     @TaskAction
     void findGit() {
-        final Git git = this.getGitService().get().git().create(this.getRootDir());
+        final Git git = this.getGitService().get().git().create(this.getRootDir(), this.getLogger());
         try {
             final String version = String.join(",", git.version().getLines());
             this.getLogger().lifecycle("Using {} for patching submodules.", version);

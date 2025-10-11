@@ -31,6 +31,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import net.kyori.mammoth.test.TestContext;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 
@@ -38,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class GitPatcherTest {
+    private static final Logger LOGGER = Logging.getLogger(GitPatcherTest.class);
     private final GitFactory git = new DefaultGitFactory();
 
     @AfterEach
@@ -60,7 +63,7 @@ public class GitPatcherTest {
         // init project
         ctx.copyInput("build.gradle");
         ctx.copyInput("settings.gradle");
-        this.git.create(ctx.outputDirectory()).run("init").expectSuccess();
+        this.git.create(ctx.outputDirectory(), LOGGER).run("init").expectSuccess();
 
         final Path upstream = ctx.outputDirectory().resolve("upstream");
         final Git git = createTestingGit(upstream);
@@ -69,7 +72,7 @@ public class GitPatcherTest {
         ctx.copyInput("ball.txt", "upstream/ball.txt");
         ctx.copyInput("cat.txt", "upstream/cat.txt");
         git.add("apple.txt", "ball.txt", "cat.txt").expectSuccess();
-        git.run("commit", "-m", "initial commit").writeTo(System.out);
+        git.run("commit", "-m", "initial commit").writeToLog();
 
         // deposit patches
         ctx.writeText("patches/0001-foo.patch", this.readResourceText("singleRepo/out/0001-foo.patch"));
@@ -91,7 +94,7 @@ public class GitPatcherTest {
 
     Git createTestingGit(final Path repo) throws IOException {
         Files.createDirectories(repo);
-        final Git ret = this.git.create(repo);
+        final Git ret = this.git.create(repo, LOGGER);
 
         ret.setCommitterNameOverride("gitpatcher");
         ret.setCommitterEmailOverride("gitpatcher@localhost");

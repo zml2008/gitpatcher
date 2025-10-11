@@ -26,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -38,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.jspecify.annotations.Nullable;
@@ -48,18 +50,20 @@ import org.jspecify.annotations.Nullable;
  * <p>All unexpected exceptions will be rethrown as {@link org.gradle.api.GradleException}s.</p>
  */
 public final class Git {
-    private static final Logger LOGGER = Logging.getLogger(Git.class);
+    static final Logger LOGGER = Logging.getLogger(Git.class);
 
     private final ExecutorService ioExecutor;
+    private final Logger logger;
     private Path repo;
     private @Nullable String committerNameOverride;
     private @Nullable String committerEmailOverride;
     private @Nullable String authorNameOverride;
     private @Nullable String authorEmailOverride;
 
-    public Git(final Path path, final ExecutorService ioExecutor) {
+    public Git(final Path path, final ExecutorService ioExecutor, final Logger logger) {
         this.repo = path;
         this.ioExecutor = ioExecutor;
+        this.logger = logger;
     }
 
     // scaffolding //
@@ -200,7 +204,7 @@ public final class Git {
         this.decorateEnv(builder.environment());
         builder.directory(this.repo.toFile());
         try {
-            return new Command(builder.start(), args, this.ioExecutor);
+            return new Command(builder.start(), args, this.ioExecutor, this.logger);
         } catch (final IOException ex) {
             throw new GradleException("Failed to start command '" + args + "'", ex);
         }
@@ -210,11 +214,13 @@ public final class Git {
         private final Process process;
         private final List<String> cli;
         private final ExecutorService ioExecutor;
+        private final Logger logger;
 
-        private Command(final Process process, final List<String> cli, final ExecutorService ioExecutor) {
+        private Command(final Process process, final List<String> cli, final ExecutorService ioExecutor, final Logger logger) {
             this.process = process;
             this.cli = List.copyOf(cli);
             this.ioExecutor = ioExecutor;
+            this.logger = logger;
         }
 
         public int awaitCompletion() {
@@ -240,35 +246,39 @@ public final class Git {
 
         public void writeTo(OutputStream out) {
             consumeStream(this.process.getInputStream(), out);
-            consumeStream(this.process.getErrorStream(), System.err);
+            consumeStream(this.process.getErrorStream(), logger, LogLevel.ERROR);
             this.expectSuccess();
         }
 
-        void forceWriteTo(OutputStream out) {
-            consumeStream(this.process.getInputStream(), out);
-            consumeStream(this.process.getErrorStream(), out);
-            this.awaitCompletion();
+        public void writeToLog() {
+            this.writeTo(this.logger);
+        }
+
+        public void writeTo(final Logger logger) {
+            consumeStream(this.process.getInputStream(), logger, LogLevel.LIFECYCLE);
+            consumeStream(this.process.getErrorStream(), logger, LogLevel.ERROR);
+            this.expectSuccess();
         }
 
         public void awaitCompletionSilently() {
-            consumeStream(this.process.getErrorStream(), System.err);
+            consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
             this.awaitCompletion();
         }
 
         public void expectSuccessSilently() {
-            consumeStream(this.process.getErrorStream(), System.err);
+            consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
             this.expectSuccess();
         }
 
         public String getText() {
-            consumeStream(this.process.getErrorStream(), System.err);
+            consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
             final String stdout = this.readText0();
             expectSuccess();
             return stdout;
         }
 
         public List<String> getLines() {
-            consumeStream(this.process.getErrorStream(), System.err);
+            consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
             try (final BufferedReader reader = this.process.inputReader(StandardCharsets.UTF_8)) {
                 final List<String> ret = reader.lines().toList();
                 this.expectSuccess();
@@ -284,7 +294,7 @@ public final class Git {
          * @return the standard output of the process no matter whether or not the execution was successful
          */
         public @Nullable String forceGetText() {
-            consumeStream(this.process.getErrorStream(), System.err);
+            consumeStream(this.process.getErrorStream(), this.logger, LogLevel.ERROR);
             final String text = this.readText0();
             return awaitCompletion() == 0 ? text : null;
         }
@@ -293,15 +303,17 @@ public final class Git {
             this.ioExecutor.submit(() -> processStream.transferTo(target));
         }
 
-        private static final int SKIP_SIZE = 2048;
-
-        private void swallowStream(final InputStream swallowStream) {
+        private void consumeStream(final InputStream processStream, final Logger target, final LogLevel level) {
             this.ioExecutor.submit(() -> {
-                long skipped;
-                do {
-                    skipped = swallowStream.skip(SKIP_SIZE);
-                } while (skipped == SKIP_SIZE);
-                return null;
+                try (final InputStreamReader isr = new InputStreamReader(processStream, StandardCharsets.UTF_8);
+                     final BufferedReader reader = new BufferedReader(isr)) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        target.log(level, line);
+                    }
+                } catch (final IOException ex) {
+                    target.error("Failed to read process output from [{}]", String.join(" ", this.cli), ex);
+                }
             });
         }
 
