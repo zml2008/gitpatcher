@@ -108,10 +108,7 @@ public abstract class GitPatcher implements Plugin<Project> {
         return project.getGradle().getSharedServices().registerIfAbsent(GitService.SERVICE_NAME, GitService.class);
     }
 
-    @SuppressWarnings("deprecation")
     private GitPatcherExtension createExtension(final ExtensionContainer extensions) {
-        final GitPatcherExtension extension = extensions.create(GitPatcherExtension.class, "gitPatcher", GitPatcherExtensionImpl.class);
-        extensions.create(PatchExtension.class, "patches", PatchExtensionImpl.class, extension);
-        return extension;
+        return extensions.create(GitPatcherExtension.class, "gitPatcher", GitPatcherExtensionImpl.class);
     }
 }
