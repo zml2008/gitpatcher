@@ -58,7 +58,7 @@ public abstract class PatchTask extends SubmoduleTask {
     @Console
     public abstract Property<String> getCommitterEmail();
 
-    protected File[] getPatches() {
+    protected File@Nullable[] getPatches() {
         final File patchDir = this.getPatchDir().get().getAsFile();
         if (!patchDir.isDirectory()) {
             return new File[0];
@@ -85,7 +85,7 @@ public abstract class PatchTask extends SubmoduleTask {
         return this.getGitDir().map(it -> it.file(".gitpatcher_ref"));
     }
 
-    private List<String> cachedRefs;
+    private @Nullable List<String> cachedRefs;
 
     private void readCache() {
         if (this.cachedRefs == null) {
@@ -118,7 +118,7 @@ public abstract class PatchTask extends SubmoduleTask {
         return this.cachedRefs.get(1);
     }
 
-    protected RepoState setupGit(final Git git) {
+    protected @Nullable RepoState setupGit(final Git git) {
         if (this.getCommitterName().isPresent()) {
           git.setCommitterNameOverride(this.getCommitterName().get());
         }
@@ -158,7 +158,7 @@ public abstract class PatchTask extends SubmoduleTask {
         return new RepoState(hasUpstream, hasPatched);
     }
 
-    protected void cleanUpSafeRepo(Git git, RepoState state) {
+    protected void cleanUpSafeRepo(Git git, @Nullable RepoState state) {
         if (state == null) {
             return;
         }

@@ -22,12 +22,21 @@
  */
 package ca.stellardrift.gitpatcher;
 
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Locale;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Internal helper methods.
+ *
+ * <p>No guarantees of stable API.</p>
  */
-class Utils {
+public class Utils {
     private Utils() {
     }
 
@@ -39,7 +48,7 @@ class Utils {
      * @param input the input
      * @return the capitalized input
      */
-    static String capitalize(final String input) {
+    public static String capitalize(final String input) {
         switch (input.length()) {
             case 0: return "";
             case 1: return input.toUpperCase(Locale.ROOT);
@@ -50,5 +59,42 @@ class Utils {
                 ret.append(input.substring(Character.charCount(firstCodePoint)));
                 return ret.toString();
         }
+    }
+
+    /**
+     * Delete a directory and any subdirectories.
+     *
+     * @param dir the directory to delete
+     * @throws IOException if deletion fails
+     */
+    public static boolean deleteRecursively(final Path dir) throws IOException {
+        if (!Files.isDirectory(dir)) {
+            return false;
+        }
+
+        Files.walkFileTree(dir, new FileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) {
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
+                throw exc;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(final Path dir, final @Nullable IOException exc) throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return true;
     }
 }

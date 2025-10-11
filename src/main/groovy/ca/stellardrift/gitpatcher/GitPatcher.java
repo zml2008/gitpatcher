@@ -36,37 +36,24 @@ import org.gradle.api.tasks.TaskProvider;
 public abstract class GitPatcher implements Plugin<Project> {
     private static final String GITPATCHER_TASK_GROUP = "gitpatcher";
 
-    private Project project;
-    private GitPatcherExtension extension;
-
-    public Project getProject() {
-        return project;
-    }
-
-    public GitPatcherExtension getExtension() {
-        return extension;
-    }
-
     static void applyGitPatcherGroup(final Task t) {
         t.setGroup(GITPATCHER_TASK_GROUP);
     }
 
     @Override
     public void apply(final Project p) {
-        this.project = p;
-
         final TaskProvider<Task> rootApply = p.getTasks().register("applyPatches", GitPatcher::applyGitPatcherGroup);
         final TaskProvider<Task> rootRebuild = p.getTasks().register("makePatches", GitPatcher::applyGitPatcherGroup);
         final TaskProvider<Task> rootUpdate = p.getTasks().register("updateSubmodules", GitPatcher::applyGitPatcherGroup);
 
-        this.extension = createExtension(p.getExtensions());
+        final GitPatcherExtension extension = this.createExtension(p.getExtensions());
 
         final TaskProvider<FindGitTask> findGit = p.getTasks().register("findGit", FindGitTask.class, GitPatcher::applyGitPatcherGroup);
 
-        getExtension().getPatchedRepos().all(r -> {
-            r.getAddAsSafeDirectory().convention(getExtension().getAddAsSafeDirectory());
-            r.getCommitterNameOverride().convention(getExtension().getCommitterNameOverride());
-            r.getCommitterEmailOverride().convention(getExtension().getCommitterEmailOverride());
+        extension.getPatchedRepos().all(r -> {
+            r.getAddAsSafeDirectory().convention(extension.getAddAsSafeDirectory());
+            r.getCommitterNameOverride().convention(extension.getCommitterNameOverride());
+            r.getCommitterEmailOverride().convention(extension.getCommitterEmailOverride());
 
             final String capitalizedName = Utils.capitalize(r.getName());
 
@@ -110,7 +97,7 @@ public abstract class GitPatcher implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private GitPatcherExtension createExtension(final ExtensionContainer extensions) {
         final GitPatcherExtension extension = extensions.create(GitPatcherExtension.class, "gitPatcher", GitPatcherExtensionImpl.class);
-        extensions.create(PatchExtension.class, "patches", PatchExtensionImpl.class, this.extension);
+        extensions.create(PatchExtension.class, "patches", PatchExtensionImpl.class, extension);
         return extension;
     }
 }
