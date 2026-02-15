@@ -4,7 +4,7 @@ version = "1.0"
 [versions]
 indra = "3.2.0"
 jspecify = "1.0.0"
-junit = "6.0.0"
+junit = "6.0.3"
 mammoth = "1.5.0"
 spotless = "8.0.0"
 pluginPublish = "2.0.0"
